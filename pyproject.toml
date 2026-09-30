@@ -1,0 +1,13 @@
+[project]
+name = "pienogiusto-dati"
+version = "1.0.0"
+description = "MIMIT fuel prices -> validated per-province JSON for the PienoGiusto app"
+requires-python = ">=3.12"
+dependencies = []  # runtime: standard library only
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

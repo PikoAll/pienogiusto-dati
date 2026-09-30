@@ -1,0 +1,4 @@
+{
+  "nota": "Nessuna esenzione: stack python-strumento, widget e golden sono n/a; unitari, regressione, smoke, integrazione e contratto sono presenti e lanciati da ci.yml.",
+  "esenzioni": []
+}

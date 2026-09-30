@@ -1,0 +1,78 @@
+name: pubblica
+
+# Daily publication of the per-province JSON on GitHub Pages.
+# MIMIT updates prezzo_alle_8.csv at ~06:45 UTC (Last-Modified measured 2026-09-30,
+# = 08:45 in Rome): a run before that only republishes yesterday's data.
+# Cron is in UTC, GitHub has no DST:
+#   07:15 UTC = 09:15 CEST (summer) / 08:15 CET (winter)
+#   09:15 UTC = 11:15 CEST (summer) / 10:15 CET (winter)  <- safety run, also covers winter
+on:
+  schedule:
+    - cron: "15 7 * * *"
+    - cron: "15 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pubblica
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-test.txt
+      - run: pytest -q
+
+  build:
+    needs: test
+    runs-on: ubuntu-24.04
+    outputs:
+      nuovo: ${{ steps.build.outputs.nuovo }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - id: pages
+        uses: actions/configure-pages@v5
+      # FAIL-CLOSED: exit != 0 stops here, nothing is uploaded, yesterday's data stays online.
+      # Same prezziDel as online -> exit 0 with nuovo=false: nothing to deploy (red only if >3 days old).
+      - id: build
+        name: Download, validate, build site/
+        run: >
+          python -m pienogiusto_dati.pubblica
+          --uscita site
+          --indice-precedente "${{ steps.pages.outputs.base_url }}/index.json"
+      - name: Contract test on the real build
+        if: steps.build.outputs.nuovo == 'true'
+        run: |
+          pip install -r requirements-test.txt
+          PIENOGIUSTO_SITE=site pytest -q tests/contract
+      - name: Report
+        if: steps.build.outputs.nuovo == 'true'
+        run: cat site/report.json >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.build.outputs.nuovo == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.nuovo == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

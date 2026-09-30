@@ -1,0 +1,9 @@
+[Unit]
+Description=PienoGiusto dati: daily watchdog of the publish workflow
+
+[Timer]
+OnCalendar=*-*-* 10:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
