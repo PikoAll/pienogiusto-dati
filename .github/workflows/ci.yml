@@ -1,5 +1,14 @@
 name: ci
 
+# The job runs on the SELF-HOSTED runner of the mini PC (EliteMini): since
+# 2026-09-24 GitHub no longer starts jobs on hosted runners for private repos
+# (account billing). The mini PC must be ON, or the job stays queued.
+# Runner status: `systemctl --user status actions-runner-pienogiusto-dati` on
+# the mini PC, or `gh api repos/PikoAll/pienogiusto-dati/actions/runners`.
+# Python is the system 3.14 of Ubuntu 26.04 (no setup-python builds for it),
+# in a fresh venv inside the job workspace.
+# pubblica.yml stays on GitHub-hosted runners on purpose.
+
 on:
   push:
   pull_request:
@@ -7,13 +16,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, linux, pienogiusto-dati]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      - name: Python venv (job workspace)
+        run: |
+          python3 -c 'import ensurepip, venv' 2>/dev/null || { echo "::error::python3-venv missing on the runner (sudo apt-get install -y python3-venv)"; exit 1; }
+          python3 -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - run: python --version
       - run: pip install -r requirements-test.txt
       - run: pytest -q
