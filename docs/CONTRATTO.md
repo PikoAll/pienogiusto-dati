@@ -6,8 +6,26 @@ con le precisazioni di come lo scrive la pipeline. Guardiano: `tests/contract/te
 ## `index.json`
 ```json
 { "schema": 1, "pubblicato": "2026-09-30T07:10:00Z", "prezziDel": "2026-09-29T08:00:00+02:00",
-  "province": [ { "sigla": "BA", "file": "p/BA.json.gz", "n": 412, "bbox": [40.73, 16.07, 41.33, 17.49] } ] }
+  "province": [ { "sigla": "BA", "file": "p/BA.json.gz", "n": 412, "bbox": [40.73, 16.07, 41.33, 17.49] } ],
+  "comuni": "comuni.json.gz" }
 ```
+La chiave `comuni` e' stata **aggiunta il 2026-10-04** (campo in piu', `schema` resta 1: l'app che non la
+conosce la ignora). Punta al file dell'elenco nazionale dei comuni qui sotto.
+
+## `comuni.json.gz` — elenco nazionale dei comuni (dal 2026-10-04)
+Serve alla ricerca per comune quando il GPS non risponde: l'app lo scarica una volta, senza bisogno di una
+posizione, e da li' risale alla provincia da caricare.
+```json
+{ "schema": 1, "comuni": [ { "n": "MONOPOLI", "p": "BA", "lat": 40.95, "lon": 17.30, "k": 27 } ] }
+```
+| Chiave | Regola |
+|---|---|
+| `n` | campo `Comune` dell'anagrafica normalizzato: spazi ai bordi tolti, spazi multipli/tab -> uno spazio, maiuscole/minuscole come nel dato; mai vuoto |
+| `p` | sigla della provincia (2 lettere maiuscole), sempre presente in `province` di `index.json` |
+| `lat`,`lon` | media delle coordinate degli impianti pubblicati di quel comune, 5 decimali; sempre dentro il `bbox` della provincia |
+| `k` | numero di impianti pubblicati di quel comune (>= 1); la somma dei `k` di una provincia = il suo `n` |
+| ordine | per `n`, poi `p`; uno stesso nome in due province = due voci distinte |
+| file | gzip, JSON compatto UTF-8 (~87 KB gz, ~5.300 comuni il 2026-10-03) |
 
 ## `p/BA.json.gz`
 ```json

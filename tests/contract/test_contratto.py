@@ -17,10 +17,11 @@ from pienogiusto_dati.pubblica import main
 from pienogiusto_dati.unisci import in_italia
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
-CHIAVI_INDEX = {"schema", "pubblicato", "prezziDel", "province"}
+CHIAVI_INDEX = {"schema", "pubblicato", "prezziDel", "province", "comuni"}
 CHIAVI_PROVINCIA = {"sigla", "file", "n", "bbox"}
 CHIAVI_IMPIANTO = {"id", "nome", "band", "ind", "com", "lat", "lon", "p"}
 CHIAVI_PREZZO = {"c", "self", "v", "t"}
+CHIAVI_COMUNE = {"n", "p", "lat", "lon", "k"}
 
 
 @pytest.fixture(scope="module")
@@ -32,6 +33,7 @@ def site(tmp_path_factory):
     mp = pytest.MonkeyPatch()
     mp.setattr(cancelli, "MIN_IMPIANTI_ASSOLUTO", 100)
     mp.setattr(cancelli, "MAX_QUOTA_PREZZI_FUORI_RANGE", 0.05)
+    mp.setattr(cancelli, "MIN_COMUNI", 10)
     try:
         assert main(["--anagrafica", str(FIXTURES / "anagrafica_reale.csv"),
                      "--prezzi", str(FIXTURES / "prezzi_reale.csv"), "--uscita", str(uscita)]) == 0
@@ -103,3 +105,43 @@ def verifica_file_provincia(voce, dati):
             assert isinstance(p["v"], float) and 0.3 <= p["v"] <= 4.0
             t = datetime.fromisoformat(p["t"])
             assert t.utcoffset() is None  # local Rome time, no offset, as in the contract example
+
+
+def test_file_comuni(index, site):
+    """Added 2026-10-04 (schema stays 1: one more key in index.json, the app ignores unknown keys).
+
+    National list for the search without GPS: one entry per (name, province), sorted by name then
+    province, coordinates = mean of the published stations of that municipality, k = their number.
+    """
+    assert index["comuni"] == "comuni.json.gz" and (site / "comuni.json.gz").is_file()
+    dati = json.loads(gzip.decompress((site / "comuni.json.gz").read_bytes()))
+    assert set(dati) == {"schema", "comuni"} and dati["schema"] == 1
+    comuni = dati["comuni"]
+    assert comuni
+    chiavi = [(c["n"], c["p"]) for c in comuni]
+    assert chiavi == sorted(set(chiavi))
+    bbox = {v["sigla"]: v["bbox"] for v in index["province"]}
+    impianti_per_provincia = {v["sigla"]: v["n"] for v in index["province"]}
+    for c in comuni:
+        assert set(c) == CHIAVI_COMUNE, c
+        assert isinstance(c["n"], str) and c["n"] == c["n"].strip() and "  " not in c["n"] and c["n"]
+        assert re.fullmatch(r"[A-Z]{2}", c["p"]) and c["p"] in bbox
+        assert isinstance(c["lat"], float) and isinstance(c["lon"], float)
+        min_lat, min_lon, max_lat, max_lon = bbox[c["p"]]
+        assert min_lat <= c["lat"] <= max_lat and min_lon <= c["lon"] <= max_lon
+        assert isinstance(c["k"], int) and c["k"] > 0
+    # every published station is counted exactly once
+    per_provincia = {}
+    for c in comuni:
+        per_provincia[c["p"]] = per_provincia.get(c["p"], 0) + c["k"]
+    assert per_provincia == impianti_per_provincia
+
+
+def test_comuni_coerenti_con_i_file_provincia(index, site):
+    """The list is derived from the published stations: same names, same counts (BA, the app's province)."""
+    voce = next(v for v in index["province"] if v["sigla"] == "BA")
+    attesi = {}
+    for d in carica(site, voce)["impianti"]:
+        attesi[d["com"]] = attesi.get(d["com"], 0) + 1
+    comuni = json.loads(gzip.decompress((site / "comuni.json.gz").read_bytes()))["comuni"]
+    assert {c["n"]: c["k"] for c in comuni if c["p"] == "BA"} == attesi
