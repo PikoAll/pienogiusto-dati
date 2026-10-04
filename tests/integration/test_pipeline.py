@@ -19,6 +19,7 @@ def soglia_bassa(monkeypatch):
     # out-of-range prices (~0.9% of its rows vs 0.013% in the full file)
     monkeypatch.setattr(cancelli, "MIN_IMPIANTI_ASSOLUTO", 100)
     monkeypatch.setattr(cancelli, "MAX_QUOTA_PREZZI_FUORI_RANGE", 0.05)
+    monkeypatch.setattr(cancelli, "MIN_COMUNI", 10)  # ~20 municipalities in the fixture, not 5,000
 
 
 def lancia(tmp_path, anagrafica="anagrafica_reale.csv", prezzi="prezzi_reale.csv", *extra):
@@ -48,6 +49,19 @@ def test_pipeline_scrive_index_province_e_report(tmp_path, soglia_bassa):
     assert set(report["cancelli"]) >= {"impianti", "coordinate_valide"}
     assert "durata_s" in report
     assert "IODL" in (site / "LEGGIMI.txt").read_text()
+
+
+def test_pipeline_scrive_elenco_comuni(tmp_path, soglia_bassa):
+    _, site = lancia(tmp_path)
+    index = json.loads((site / "index.json").read_text())
+    assert index["comuni"] == "comuni.json.gz"
+    comuni = json.loads(gzip.decompress((site / "comuni.json.gz").read_bytes()))["comuni"]
+    acquaviva = next(c for c in comuni if c["n"] == "ACQUAVIVA DELLE FONTI")
+    assert acquaviva["p"] == "BA" and acquaviva["k"] >= 5
+    assert 40.88 <= acquaviva["lat"] <= 40.91 and 16.83 <= acquaviva["lon"] <= 16.88
+    report = json.loads((site / "report.json").read_text())
+    assert report["comuni"] == len(comuni)
+    assert report["cancelli"]["comuni"]["ok"] is True
 
 
 def test_casi_difficili_reali_recuperati(tmp_path, soglia_bassa):

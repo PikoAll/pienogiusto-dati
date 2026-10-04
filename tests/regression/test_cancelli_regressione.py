@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from pienogiusto_dati.cancelli import (
+    MIN_COMUNI,
     MIN_IMPIANTI_ASSOLUTO,
     CancelloFallito,
     MAX_ETA_DATI,
@@ -36,72 +37,74 @@ def nomi_falliti(exc_info):
 
 
 def test_giornata_reale_passa():
-    esiti = verifica_cancelli(*stato(), n_precedente=21_200)
+    esiti = verifica_cancelli(*stato(), comuni(), n_precedente=21_200)
     assert all(e.ok for e in esiti)
     assert {e.nome for e in esiti} == {"impianti", "prezzi_fuori_range", "coordinate_valide",
                                        "coordinate_italia", "righe_anagrafica", "righe_prezzi",
-                                       "codifica_anagrafica", "codifica_prezzi"}
+                                       "codifica_anagrafica", "codifica_prezzi",
+                                       "comuni", "comuni_bbox", "comuni_nome_vuoto"}
 
 
 @pytest.mark.parametrize("n", [18_000, 25_000])
 def test_impianti_oltre_10_per_cento_dal_precedente_rosso(n):
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(pubblicati=n), n_precedente=21_000)
+        verifica_cancelli(*stato(pubblicati=n), comuni(), n_precedente=21_000)
     assert nomi_falliti(e) == {"impianti"}
 
 
 @pytest.mark.parametrize("n", [18_900, 23_100])
 def test_impianti_entro_10_per_cento_verde(n):
-    verifica_cancelli(*stato(pubblicati=n), n_precedente=21_000)
+    verifica_cancelli(*stato(pubblicati=n), comuni(), n_precedente=21_000)
 
 
 def test_primo_giro_sotto_la_soglia_assoluta_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(pubblicati=MIN_IMPIANTI_ASSOLUTO - 1), n_precedente=None)
+        verifica_cancelli(*stato(pubblicati=MIN_IMPIANTI_ASSOLUTO - 1), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"impianti"}
 
 
 def test_primo_giro_sopra_la_soglia_assoluta_verde():
-    verifica_cancelli(*stato(pubblicati=MIN_IMPIANTI_ASSOLUTO), n_precedente=None)
+    verifica_cancelli(*stato(pubblicati=MIN_IMPIANTI_ASSOLUTO), comuni(), n_precedente=None)
 
 
 def test_troppi_prezzi_fuori_range_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(fuori_range=500), n_precedente=None)
+        verifica_cancelli(*stato(fuori_range=500), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"prezzi_fuori_range"}
 
 
 def test_pochi_prezzi_fuori_range_verde():
-    verifica_cancelli(*stato(fuori_range=400), n_precedente=None)
+    verifica_cancelli(*stato(fuori_range=400), comuni(), n_precedente=None)
 
 
 def test_meno_del_95_per_cento_con_coordinate_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(anagrafica=23_900, coord=22_600), n_precedente=None)
+        verifica_cancelli(*stato(anagrafica=23_900, coord=22_600), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"coordinate_valide"}
 
 
 def test_impianto_pubblicato_fuori_italia_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(fuori_italia=True), n_precedente=None)
+        # municipalities follow the (swapped) stations: only the Italy gate must trip
+        verifica_cancelli(*stato(fuori_italia=True), comuni(lat=17.3, lon=40.9), n_precedente=None)
     assert nomi_falliti(e) == {"coordinate_italia"}
 
 
 def test_troppe_righe_malformate_anagrafica_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(malformate_a=200), n_precedente=None)
+        verifica_cancelli(*stato(malformate_a=200), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"righe_anagrafica"}
 
 
 def test_troppe_righe_malformate_prezzi_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(malformate_p=1_000), n_precedente=None)
+        verifica_cancelli(*stato(malformate_p=1_000), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"righe_prezzi"}
 
 
 def test_piu_cancelli_falliti_riportati_tutti():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(pubblicati=100, fuori_range=5_000), n_precedente=None)
+        verifica_cancelli(*stato(pubblicati=100, fuori_range=5_000), comuni(), n_precedente=None)
     assert nomi_falliti(e) == {"impianti", "prezzi_fuori_range"}
 
 
@@ -109,18 +112,18 @@ def test_piu_cancelli_falliti_riportati_tutti():
 
 def test_codifica_anagrafica_rovinata_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(sostituite_a=25), n_precedente=None)  # 25/23,900 = 0.105%
+        verifica_cancelli(*stato(sostituite_a=25), comuni(), n_precedente=None)  # 25/23,900 = 0.105%
     assert nomi_falliti(e) == {"codifica_anagrafica"}
 
 
 def test_codifica_prezzi_rovinata_rosso():
     with pytest.raises(CancelloFallito) as e:
-        verifica_cancelli(*stato(sostituite_p=100), n_precedente=None)  # 100/92,909 = 0.108%
+        verifica_cancelli(*stato(sostituite_p=100), comuni(), n_precedente=None)  # 100/92,909 = 0.108%
     assert nomi_falliti(e) == {"codifica_prezzi"}
 
 
 def test_codifica_qualche_carattere_sostituito_verde():
-    verifica_cancelli(*stato(sostituite_a=23, sostituite_p=90), n_precedente=None)
+    verifica_cancelli(*stato(sostituite_a=23, sostituite_p=90), comuni(), n_precedente=None)
 
 
 # --- dati fermi: prezziDel must move forward; stale published data turns the job red
@@ -159,3 +162,44 @@ def test_dati_nuovi_ma_vecchi_si_pubblicano_comunque():
     # newer than what is online: publishing improves things even if still old
     adesso = datetime(2026, 10, 10, tzinfo=timezone.utc)
     assert valuta_novita(OGGI, IERI, adesso) is True
+
+
+# --- comuni (comuni.json.gz): national list for the search without GPS
+
+def comuni(n=5_500, nome="X", fuori_bbox=False, lat=40.9, lon=17.3):
+    primo = {"n": nome, "p": "BA", "lat": 46.0 if fuori_bbox else lat, "lon": lon, "k": 1}
+    return [primo] + [{"n": f"COMUNE {i}", "p": "BA", "lat": lat, "lon": lon, "k": 1} for i in range(n - 1)]
+
+
+def test_comuni_giornata_reale_passa():
+    esiti = verifica_cancelli(*stato(), comuni(), n_precedente=21_200)
+    assert {e.nome for e in esiti} >= {"comuni", "comuni_bbox", "comuni_nome_vuoto"}
+
+
+def test_pochi_comuni_rosso():
+    with pytest.raises(CancelloFallito) as e:
+        verifica_cancelli(*stato(), comuni(MIN_COMUNI - 1), n_precedente=None)
+    assert nomi_falliti(e) == {"comuni"}
+
+
+def test_comuni_alla_soglia_verde():
+    verifica_cancelli(*stato(), comuni(MIN_COMUNI), n_precedente=None)
+
+
+def test_comune_fuori_dal_bbox_della_sua_provincia_rosso():
+    with pytest.raises(CancelloFallito) as e:
+        verifica_cancelli(*stato(), comuni(fuori_bbox=True), n_precedente=None)
+    assert nomi_falliti(e) == {"comuni_bbox"}
+
+
+def test_comune_di_provincia_sconosciuta_rosso():
+    lista = comuni() + [{"n": "ALTROVE", "p": "ZZ", "lat": 40.9, "lon": 17.3, "k": 1}]
+    with pytest.raises(CancelloFallito) as e:
+        verifica_cancelli(*stato(), lista, n_precedente=None)
+    assert nomi_falliti(e) == {"comuni_bbox"}
+
+
+def test_comune_senza_nome_rosso():
+    with pytest.raises(CancelloFallito) as e:
+        verifica_cancelli(*stato(), comuni(nome=""), n_precedente=None)
+    assert nomi_falliti(e) == {"comuni_nome_vuoto"}

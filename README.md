@@ -5,6 +5,8 @@ un JSON compresso per provincia, letto dall'app Android **PienoGiusto**.
 
 - `index.json`: elenco province con file, numero impianti e riquadro geografico.
 - `p/<SIGLA>.json.gz`: impianti della provincia con i prezzi.
+- `comuni.json.gz`: elenco nazionale dei comuni (nome, provincia, coordinate medie, numero impianti) per la
+  ricerca senza GPS.
 - `report.json`: conteggi, scarti per motivo, esito dei cancelli.
 
 Formato: [docs/CONTRATTO.md](docs/CONTRATTO.md). Se un controllo fallisce non si pubblica nulla
@@ -35,7 +37,7 @@ loginctl show-user "$USER" -p Linger   # Linger=no: il timer gira solo con la se
 
 ## Controlli
 
-- Test: `pip install -r requirements-test.txt && pytest -q` (112 test verdi il 2026-10-03).
+- Test: `pip install -r requirements-test.txt && pytest -q` (132 test verdi il 2026-10-04).
 - CI reale: `.github/workflows/ci.yml` su ogni push e pull request (`pytest -q`, Python 3.12,
   ubuntu-24.04). `pubblica.yml` e' la pubblicazione giornaliera (cron + avvio manuale), non la CI.
 - Workflow modificati: `actionlint .github/workflows/*.yml` prima della PR.

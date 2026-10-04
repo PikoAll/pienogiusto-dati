@@ -79,6 +79,23 @@ Attenzione per il futuro: se un giorno il sito Pikobit venisse spostato in un re
 URL che fa redirect). In quel caso: dominio proprio per questo repo o organizzazione GitHub separata.
 https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages
 
+### D12 · Elenco nazionale dei comuni `comuni.json.gz` (2026-10-04, mandato di Cowork)
+Nell'app, senza GPS, la ricerca "Cerca un comune" leggeva i comuni dalle province gia' scaricate, ma per
+scaricarne una serve una posizione: al primo avvio senza GPS rispondeva sempre "Comune non trovato" (prove su
+emulatore del 2026-10-04). Soluzione: un file nazionale pubblicato insieme ai prezzi, derivato dagli impianti
+pubblicati (una voce per coppia nome+provincia, coordinate = media degli impianti, `k` = quanti sono).
+E' una chiave in piu' in `index.json` (`"comuni"`), quindi `schema` resta 1. Formato in CONTRATTO.md.
+Cancelli nuovi, misurati sui dati reali:
+- `comuni` >= **5.000**: misurati **5.287** comuni sul dato del 2026-09-29 e **5.286** su quello del 2026-10-03
+  (2.253 con un solo impianto). La soglia e' quella chiesta dal mandato (margine -5,4%, piu' stretto del -17%
+  del cancello impianti): fra un giorno e l'altro il numero si muove di unita', non di centinaia, ma se
+  dovesse scattare a vuoto va rimisurata qui prima di abbassarla.
+- `comuni_bbox` == 0: ogni comune dentro il bbox della sua provincia (oggi 0 fuori; la media di punti dentro
+  un rettangolo sta nel rettangolo, il cancello difende dall'arrotondamento e da province sconosciute).
+- `comuni_nome_vuoto` == 0: nessun comune senza nome (oggi 0; coerente col test di contratto che gia' esige
+  `com` non vuoto su ogni impianto).
+Peso: 87 KB gzip (342 KB JSON) per 5.286 comuni.
+
 ## Rischi aperti
 
 ### R1 · Spegnimento del workflow dopo 60 giorni — MITIGATO dal watchdog (D10), resta un rischio residuo

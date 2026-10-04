@@ -24,6 +24,9 @@ MAX_QUOTA_RIGHE_MALFORMATE = 0.005
 MAX_QUOTA_RIGHE_SOSTITUITE = 0.001
 # prezziDel normally ages ~25 h at publication time; 3 days = MIMIT stuck for 2 days.
 MAX_ETA_DATI = timedelta(days=3)
+# Municipalities with at least one published station: 5,286 on the 2026-10-03 data and 5,287 on the
+# 2026-09-29 data (docs/DECISIONI.md D12). Floor asked by the mandate: 5,000 (-5.4%).
+MIN_COMUNI = 5_000
 
 _MALFORMATE = ("riga_malformata", "id_non_valido", "provincia_non_valida", "prezzo_non_valido",
                "self_non_valido", "data_non_valida", "carburante_mancante")
@@ -52,7 +55,7 @@ def _quota(num: int, den: int) -> float:
 
 
 def verifica_cancelli(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi, unione: Unione,
-                      n_precedente: int | None) -> list[Esito]:
+                      comuni: list[dict], n_precedente: int | None) -> list[Esito]:
     esiti: list[Esito] = []
     n = unione.pubblicati
     if n_precedente:
@@ -82,9 +85,23 @@ def verifica_cancelli(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi, unione
         q = _quota(ris.righe_con_sostituzioni, ris.righe)
         esiti.append(Esito(nome, q <= MAX_QUOTA_RIGHE_SOSTITUITE, q, f"<= {MAX_QUOTA_RIGHE_SOSTITUITE}"))
 
+    esiti.append(Esito("comuni", len(comuni) >= MIN_COMUNI, len(comuni), f">= {MIN_COMUNI}"))
+    bbox = {sigla: unione.bbox(sigla) for sigla in unione.province}
+    fuori = sum(1 for c in comuni if not _nel_bbox(c, bbox))
+    esiti.append(Esito("comuni_bbox", fuori == 0, fuori, "== 0 fuori dal bbox della propria provincia"))
+    vuoti = sum(1 for c in comuni if not c["n"])
+    esiti.append(Esito("comuni_nome_vuoto", vuoti == 0, vuoti, "== 0"))
+
     if any(not e.ok for e in esiti):
         raise CancelloFallito(esiti)
     return esiti
+
+
+def _nel_bbox(comune: dict, bbox: dict[str, list[float]]) -> bool:
+    if comune["p"] not in bbox:
+        return False
+    min_lat, min_lon, max_lat, max_lon = bbox[comune["p"]]
+    return min_lat <= comune["lat"] <= max_lat and min_lon <= comune["lon"] <= max_lon
 
 
 def valuta_novita(prezzi_del_nuovo: str, prezzi_del_pubblicato: str | None, adesso: datetime) -> bool:

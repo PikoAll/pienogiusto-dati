@@ -1,4 +1,4 @@
-"""Entry point: download -> parse -> join -> gates -> site/ (index.json, p/<SIGLA>.json.gz, report.json).
+"""Entry point: download -> parse -> join -> gates -> site/ (index.json, p/<SIGLA>.json.gz, comuni.json.gz, report.json).
 
 Exit codes: 0 published or nothing new, 1 a gate failed (header and stale data included),
 2 download/usage error. Nothing is written unless every gate passes (FAIL-CLOSED).
@@ -19,6 +19,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import cancelli
+from .comuni import elenco_comuni
 from .parser import FormatoNonValido, parse_anagrafica, parse_prezzi
 from .scarica import (URL_ANAGRAFICA, URL_PREZZI, ErroreDownload, IndicePrecedente, indice_precedente,
                       scarica)
@@ -60,7 +61,8 @@ def costruisci(dati_anagrafica: bytes, dati_prezzi: bytes, precedente: IndicePre
     anag = parse_anagrafica(dati_anagrafica)
     prezzi = parse_prezzi(dati_prezzi)
     unione = unisci(anag, prezzi)
-    esiti = cancelli.verifica_cancelli(anag, prezzi, unione, precedente and precedente.n)
+    comuni = elenco_comuni(unione)
+    esiti = cancelli.verifica_cancelli(anag, prezzi, unione, comuni, precedente and precedente.n)
     prezzi_del = _prezzi_del(prezzi)
     nuovo = cancelli.valuta_novita(prezzi_del, precedente and precedente.prezzi_del, adesso)
 
@@ -72,8 +74,10 @@ def costruisci(dati_anagrafica: bytes, dati_prezzi: bytes, precedente: IndicePre
                                    compresslevel=9, mtime=0)
         province.append({"sigla": sigla, "file": nome, "n": len(unione.province[sigla]),
                          "bbox": unione.bbox(sigla)})
+    file["comuni.json.gz"] = gzip.compress(_json({"schema": SCHEMA, "comuni": comuni}), compresslevel=9, mtime=0)
     pubblicato = adesso.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    index = {"schema": SCHEMA, "pubblicato": pubblicato, "prezziDel": prezzi_del, "province": province}
+    index = {"schema": SCHEMA, "pubblicato": pubblicato, "prezziDel": prezzi_del, "province": province,
+             "comuni": "comuni.json.gz"}
     file["index.json"] = _json(index)
     file["LEGGIMI.txt"] = LEGGIMI.encode("utf-8")
 
@@ -90,9 +94,11 @@ def costruisci(dati_anagrafica: bytes, dati_prezzi: bytes, precedente: IndicePre
         "impianti_pubblicati": unione.pubblicati,
         "impianti_precedenti": precedente and precedente.n,
         "province": len(province),
+        "comuni": len(comuni),
         "scarti": scarti,
         "cancelli": {e.nome: e.come_dict() for e in esiti},
         "byte_pubblicati": sum(len(v) for k, v in file.items() if k.startswith("p/")),
+        "byte_comuni": len(file["comuni.json.gz"]),
     }
     return file, report, nuovo
 
