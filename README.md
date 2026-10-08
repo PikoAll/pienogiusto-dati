@@ -35,6 +35,22 @@ systemctl --user start pienogiusto-watchdog.service && tail -n 1 ~/.local/state/
 loginctl show-user "$USER" -p Linger   # Linger=no: il timer gira solo con la sessione aperta
 ```
 
+## Spinta della pubblicazione (timer utente, stessa macchina)
+I cron di GitHub partono 5-9 h in ritardo. `scripts/spinta.sh` legge l'`index.json` pubblicato alle
+09:40, 10:40, 12:10, 14:10 e 17:10 (ora italiana); se `prezziDel` e' di due giorni fa o piu' vecchio
+(manca il dato atteso oggi), non c'e' un giro in corso e l'ultimo lancio e' di piu' di 2 h fa, lancia
+`gh workflow run pubblica.yml`. Il workflow pubblica solo con `prezziDel` nuovo, quindi una spinta
+inutile non cambia nulla. Diario: `~/.local/state/pienogiusto/spinta.log`. Prova a secco:
+`scripts/spinta.sh --prova`. Installazione (come il watchdog, con `pienogiusto-dati-spinta.*`):
+
+```bash
+ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-dati-spinta.service ~/.config/systemd/user/
+ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-dati-spinta.timer ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now pienogiusto-dati-spinta.timer
+```
+
+Il watchdog sopra NON controlla l'eta' dei dati: guarda solo che il workflow sia attivo.
+
 ## Controlli
 
 - Test: `pip install -r requirements-test.txt && pytest -q` (132 test verdi il 2026-10-04).

@@ -6,10 +6,18 @@ name: pubblica
 # Cron is in UTC, GitHub has no DST:
 #   07:15 UTC = 09:15 CEST (summer) / 08:15 CET (winter)
 #   09:15 UTC = 11:15 CEST (summer) / 10:15 CET (winter)  <- safety run, also covers winter
+# GitHub starts scheduled runs 5-9 h late (measured 2026-10-04..08), so more rounds are cheap
+# insurance: a run without a new prezziDel deploys nothing. The real driver is the always-on
+# machine (scripts/spinta.sh, timer pienogiusto-dati-spinta), which launches workflow_dispatch.
+#   11:15 / 13:15 / 16:15 / 19:15 UTC = late MIMIT publication and delayed runs
 on:
   schedule:
     - cron: "15 7 * * *"
     - cron: "15 9 * * *"
+    - cron: "15 11 * * *"
+    - cron: "15 13 * * *"
+    - cron: "15 16 * * *"
+    - cron: "15 19 * * *"
   workflow_dispatch:
 
 permissions:

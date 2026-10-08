@@ -1,0 +1,14 @@
+[Unit]
+Description=PienoGiusto dati: push of the publish workflow (5 times a day, Rome time)
+
+[Timer]
+# MIMIT publishes ~08:45 Rome; GitHub cron runs start hours late, these rounds make up for it.
+OnCalendar=*-*-* 09:40:00
+OnCalendar=*-*-* 10:40:00
+OnCalendar=*-*-* 12:10:00
+OnCalendar=*-*-* 14:10:00
+OnCalendar=*-*-* 17:10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
