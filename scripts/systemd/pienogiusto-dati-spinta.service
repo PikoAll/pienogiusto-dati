@@ -1,0 +1,10 @@
+[Unit]
+Description=PienoGiusto dati: launch pubblica.yml by hand when the expected prices are missing
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Adjust the path if the repo lives elsewhere on this machine.
+ExecStart=%h/Scrivania/progetti/pienogiusto-dati/scripts/spinta.sh
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
