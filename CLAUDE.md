@@ -15,3 +15,5 @@ Repo PUBBLICO: pipeline MIMIT -> JSON per provincia su GitHub Pages per l'app Pi
 - Workflow: `actionlint .github/workflows/*.yml` prima di proporre modifiche.
 - Test: `pytest -q`. Rete: `python3 ~/Scrivania/arsenale-ai/scripts/verifica-rete-di-sicurezza.py .`
 - git add/commit/push li fa Giuseppe.
+
+- Leggi `docs/mappa.md` prima di cercare nel codice.
