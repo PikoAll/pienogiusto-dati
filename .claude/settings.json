@@ -23,7 +23,6 @@
       "Bash(git reset --hard*)",
       "Bash(git push * --delete*)",
       "Bash(git push * -d *)",
-      "Bash(git push *:*)",
       "Bash(git push * --no-verify*)",
       "Bash(git push * --mirror*)",
       "Bash(git push * --prune*)",
@@ -32,7 +31,23 @@
       "Bash(gh api * -X DELETE*)",
       "Bash(gh api * --method DELETE*)",
       "Bash(gh issue delete*)",
-      "Bash(gh project delete*)"
+      "Bash(gh project delete*)",
+      "Bash(git push --delete*)",
+      "Bash(git push -d *)",
+      "Bash(git push --mirror*)",
+      "Bash(git push --prune*)",
+      "Bash(git push --no-verify*)",
+      "Bash(gh api -X DELETE*)",
+      "Bash(gh api --method*DELETE*)",
+      "Bash(gh api * --method*DELETE*)",
+      "Bash(gh api -XDELETE*)",
+      "Bash(gh api * -XDELETE*)",
+      "Bash(gh api -X PUT*)",
+      "Bash(gh api * -X PUT*)",
+      "Bash(gh api --method*PUT*)",
+      "Bash(gh api * --method*PUT*)",
+      "Bash(gh api -XPUT*)",
+      "Bash(gh api */merge*)"
     ]
   }
 }
