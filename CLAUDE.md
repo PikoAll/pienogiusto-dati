@@ -17,3 +17,5 @@ Repo PUBBLICO: pipeline MIMIT -> JSON per provincia su GitHub Pages per l'app Pi
 - git add/commit/push li fa Giuseppe.
 
 - Leggi `docs/mappa.md` prima di cercare nel codice.
+
+- Il checkout principale è SOLA LETTURA: si lavora nei worktree in ~/Scrivania/_lavoro/ (mai modificare file nel checkout principale).
