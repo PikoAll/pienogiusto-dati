@@ -1,55 +1,57 @@
 # Mappa del codice
-<!-- generata da scripts/azienda/genera-mappa.sh; righe vuote = da completare, rilancia lo script -->
+<!-- generata da scripts/azienda/mappa-sonnet.py (prima passata, Sonnet); la manutenzione la fa genera-mappa.sh (Ollama): riempie solo le righe vuote -->
 
-- `.github/workflows/ci.yml` —
-- `.github/workflows/pubblica.yml` —
-- `.gitignore` —
-- `.rete-di-sicurezza.json` —
-- `CLAUDE.md` —
-- `LICENSE` —
-- `README.md` —
-- `docs/1_vision_e_core.md` —
-- `docs/2_architettura_stack.md` —
-- `docs/3_roadmap_macro.md` —
-- `docs/4_sprint_corrente.md` —
-- `docs/5_stato_e_checkpoint.md` —
-- `docs/CONTRATTO.md` —
-- `docs/DECISIONI.md` —
-- `docs/RICOGNIZIONE.md` —
-- `docs/nota-di-rilascio.md` —
-- `pienogiusto_dati/cancelli.py` —
-- `pienogiusto_dati/comuni.py` —
-- `pienogiusto_dati/parser.py` —
-- `pienogiusto_dati/pubblica.py` —
-- `pienogiusto_dati/scarica.py` —
-- `pienogiusto_dati/unisci.py` —
-- `pyproject.toml` —
-- `requirements-test.txt` —
-- `scripts/spinta.sh` —
-- `scripts/systemd/pienogiusto-dati-spinta.service` —
-- `scripts/systemd/pienogiusto-dati-spinta.timer` —
-- `scripts/systemd/pienogiusto-watchdog.service` —
-- `scripts/systemd/pienogiusto-watchdog.timer` —
-- `scripts/watchdog.sh` —
-- `tests/conftest.py` —
-- `tests/contract/test_contratto.py` —
-- `tests/fixtures/README.md` —
-- `tests/fixtures/anagrafica_latin1.csv` —
-- `tests/fixtures/anagrafica_reale.csv` —
-- `tests/fixtures/anagrafica_senza_estrazione.csv` —
-- `tests/fixtures/anagrafica_troncata.csv` —
-- `tests/fixtures/anagrafica_virgola.csv` —
-- `tests/fixtures/pagina_errore.html` —
-- `tests/fixtures/prezzi_reale.csv` —
-- `tests/fixtures/prezzi_troncato.csv` —
-- `tests/fixtures/prezzi_virgola.csv` —
-- `tests/integration/test_pipeline.py` —
-- `tests/integration/test_spinta.py` —
-- `tests/integration/test_watchdog.py` —
-- `tests/regression/test_cancelli_regressione.py` —
-- `tests/regression/test_formati_regressione.py` —
-- `tests/smoke/test_avvio.py` —
-- `tests/unit/test_comuni.py` —
-- `tests/unit/test_parser.py` —
-- `tests/unit/test_scarica.py` —
-- `tests/unit/test_unisci.py` —
+- `.claude/settings.json` — Claude Code project permissions: allows gh and git push origin, denies rm, force pushes and hard resets.
+- `.github/workflows/ci.yml` — CI workflow running the pytest suite on push and pull request with Python 3.12.
+- `.github/workflows/pubblica.yml` — Scheduled workflow that runs the pipeline and publishes per-province JSON to GitHub Pages when new prices exist.
+- `.gitignore` — Git ignore rules for generated site output directories.
+- `.rete-di-sicurezza.json` — Safety-net config declaring which mandatory test categories apply to this repo and have no exemptions.
+- `CLAUDE.md` — Project instructions for agents: data contract rules, fail-closed gates, standard-library-only runtime.
+- `LICENSE` — MIT license text for the repository.
+- `README.md` — Project overview: daily MIMIT fuel data pipeline and the published JSON files consumed by the PienoGiusto app.
+- `docs/1_vision_e_core.md` — Project vision: problem solved, actors, distinguishing fail-closed gates feature and out-of-scope items.
+- `docs/2_architettura_stack.md` — Architecture and stack notes: Python standard library pipeline stages, GitHub Actions publishing and folder structure.
+- `docs/3_roadmap_macro.md` — Macro roadmap listing epics with completion status.
+- `docs/4_sprint_corrente.md` — Current sprint notes: active epic, ticket in progress and acceptance criteria for go-live.
+- `docs/5_stato_e_checkpoint.md` — Project logbook with dated checkpoint entries describing what each closed ticket changed.
+- `docs/CONTRATTO.md` — Binding schema 1 data contract between the pipeline and the app, for index.json and province files.
+- `docs/DECISIONI.md` — Record of design decisions taken, such as cron times, price gate threshold and hand-written parser.
+- `docs/RICOGNIZIONE.md` — Reconnaissance of the real MIMIT CSV files: sizes, row counts, encoding, separators and anomalies measured.
+- `docs/nota-di-rilascio.md` — Working-backwards release note describing the user-facing value of the daily validated fuel price data.
+- `pienogiusto_dati/__init__.py` — Package marker for the pienogiusto_dati module, empty.
+- `pienogiusto_dati/cancelli.py` — Fail-closed publication gates that block publishing when the day's data looks anomalous, calibrated on real files.
+- `pienogiusto_dati/comuni.py` — Builds the national municipality list (comuni.json.gz) from published stations for GPS-less search in the app.
+- `pienogiusto_dati/parser.py` — Tolerant parser for the two MIMIT CSV files handling separators, stray quotes and malformed rows.
+- `pienogiusto_dati/pubblica.py` — Pipeline entry point: downloads, parses, joins, applies gates and writes the site output files.
+- `pienogiusto_dati/scarica.py` — Robust downloader for the MIMIT files and the previously published index, with retries and validation.
+- `pienogiusto_dati/unisci.py` — Joins stations and prices by station id, filters invalid ones and groups results by province.
+- `pyproject.toml` — Python project metadata: name, version, Python 3.12 requirement, no runtime dependencies, pytest as test extra.
+- `requirements-test.txt` — Pinned test dependency list containing pytest for CI.
+- `scripts/spinta.sh` — Script that manually launches the publish workflow when the published prices are two or more days old.
+- `scripts/systemd/pienogiusto-dati-spinta.service` — Systemd user service that runs spinta.sh to push the publish workflow.
+- `scripts/systemd/pienogiusto-dati-spinta.timer` — Systemd timer running the push service five times a day in Rome time.
+- `scripts/systemd/pienogiusto-watchdog.service` — Systemd user service that runs watchdog.sh to re-enable the publish workflow if GitHub disabled it.
+- `scripts/systemd/pienogiusto-watchdog.timer` — Systemd timer running the workflow watchdog daily at 10:30.
+- `scripts/watchdog.sh` — Script that re-enables the scheduled workflow when GitHub disabled it for inactivity and launches a run.
+- `tests/conftest.py` — Shared pytest fixtures providing helpers to read fixture files as bytes.
+- `tests/contract/test_contratto.py` — Contract test validating the generated site against the schema 1 app data contract.
+- `tests/fixtures/README.md` — Explains the origin and purpose of each test fixture file derived from the real MIMIT extract.
+- `tests/fixtures/anagrafica_latin1.csv` — Fixture station registry encoded in cp1252 with CRLF line endings for encoding tolerance tests.
+- `tests/fixtures/anagrafica_reale.csv` — Fixture with a real byte-for-byte extract of the MIMIT station registry including difficult cases.
+- `tests/fixtures/anagrafica_senza_estrazione.csv` — Fixture station registry without the leading Estrazione line.
+- `tests/fixtures/anagrafica_troncata.csv` — Fixture station registry truncated mid-row to test truncated download detection.
+- `tests/fixtures/anagrafica_virgola.csv` — Fixture station registry in the old comma-separated format.
+- `tests/fixtures/pagina_errore.html` — Fixture HTML error page served in place of a CSV to test rejection.
+- `tests/fixtures/prezzi_reale.csv` — Fixture with the real extract of MIMIT price rows for the fixture stations.
+- `tests/fixtures/prezzi_troncato.csv` — Fixture price file truncated mid-row to test truncated download detection.
+- `tests/fixtures/prezzi_virgola.csv` — Fixture price file in the old comma-separated format without the Estrazione line.
+- `tests/integration/test_pipeline.py` — Integration tests running the whole pipeline on the real extract from bytes to site files on disk.
+- `tests/integration/test_spinta.py` — Integration tests for spinta.sh using a fake gh command and a local index file.
+- `tests/integration/test_watchdog.py` — Integration tests for watchdog.sh using a fake gh command in PATH.
+- `tests/regression/test_cancelli_regressione.py` — Regression tests giving each fail-closed gate a refusal case and a passing case.
+- `tests/regression/test_formati_regressione.py` — Regression tests for the MIMIT file formats seen or possible: old, new, truncated, HTML and cp1252.
+- `tests/smoke/test_avvio.py` — Smoke test checking the real pubblica entrypoint starts as a process.
+- `tests/unit/test_comuni.py` — Unit tests for the national municipality list builder.
+- `tests/unit/test_parser.py` — Unit tests for the tolerant MIMIT CSV parser on in-memory bytes.
+- `tests/unit/test_scarica.py` — Unit tests for the robust downloader with the network replaced by fakes.
+- `tests/unit/test_unisci.py` — Unit tests for joining stations and prices and grouping by province.
