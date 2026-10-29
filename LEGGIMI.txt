@@ -1,0 +1,8 @@
+PienoGiusto - dati carburanti per provincia
+
+Fonte: Ministero delle Imprese e del Made in Italy (MIMIT), dataset
+"Carburanti - Prezzi praticati e anagrafica degli impianti",
+https://www.mimit.gov.it/it/open-data/elenco-dataset/carburanti-prezzi-praticati-e-anagrafica-degli-impianti
+Licenza: Italian Open Data License v2.0 (IODL 2.0), https://www.dati.gov.it/iodl/2.0/
+I dati sono stati filtrati, uniti e riformattati; il MIMIT non e' responsabile di queste elaborazioni.
+Formato: docs/CONTRATTO.md nel repo pienogiusto-dati.
