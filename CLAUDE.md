@@ -15,6 +15,7 @@ Repo PUBBLICO: pipeline MIMIT -> JSON per provincia su GitHub Pages per l'app Pi
 - Workflow: `actionlint .github/workflows/*.yml` prima di proporre modifiche.
 - Test: `pytest -q`. Rete: `python3 ~/Scrivania/arsenale-ai/scripts/verifica-rete-di-sicurezza.py .`
 - git add/commit/push li fa Giuseppe.
+- Git: PR senza merge da /lotto-card (arsenale-ai/docs/regole/lotto-card.md): push del ramo e PR li fa `scripts/lotto-card/pubblica-card.sh` dopo i cancelli; il merge (MERGE_AUTO=si) lo fa lo stesso script SOLO a CI verde. L'agente non mergia e non pusha mai su main.
 
 - Leggi `docs/mappa.md` prima di cercare nel codice.
 
