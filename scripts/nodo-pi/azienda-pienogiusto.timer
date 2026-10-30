@@ -1,0 +1,15 @@
+[Unit]
+Description=PienoGiusto dati: publish from the home node 6 times a day (Europe/Rome)
+
+[Timer]
+OnCalendar=*-*-* 09:15:00 Europe/Rome
+OnCalendar=*-*-* 11:15:00 Europe/Rome
+OnCalendar=*-*-* 13:15:00 Europe/Rome
+OnCalendar=*-*-* 15:15:00 Europe/Rome
+OnCalendar=*-*-* 18:15:00 Europe/Rome
+OnCalendar=*-*-* 21:15:00 Europe/Rome
+RandomizedDelaySec=2min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=PienoGiusto dati: publish from the home node (Raspberry Pi) to gh-pages
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Adjust the path if the repo lives elsewhere on this machine.
+ExecStart=%h/azienda/pienogiusto-dati/scripts/nodo-pi/pubblica.sh
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PUBBLICA=si
+# Deploy-key remote: machine configuration, not part of the repo.
+Environment=PUBBLICA_REMOTO=git@github-pienogiusto:PikoAll/pienogiusto-dati.git
