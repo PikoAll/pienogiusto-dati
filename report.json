@@ -1,37 +1,37 @@
 {
-  "pubblicato": "2026-10-30T08:17:24Z",
-  "prezziDel": "2026-10-29T08:00:00+01:00",
+  "pubblicato": "2026-10-31T08:16:11Z",
+  "prezziDel": "2026-10-30T08:00:00+01:00",
   "sorgenti": {
     "anagrafica": {
-      "byte": 3574367,
-      "righe": 23932,
+      "byte": 3575262,
+      "righe": 23940,
       "codifica": "utf-8",
       "separatore": "|",
-      "estrazione": "2026-10-29"
+      "estrazione": "2026-10-30"
     },
     "prezzi": {
-      "byte": 3937199,
-      "righe": 92718,
+      "byte": 3938028,
+      "righe": 92739,
       "codifica": "utf-8",
       "separatore": "|",
-      "estrazione": "2026-10-29"
+      "estrazione": "2026-10-30"
     }
   },
-  "impianti_anagrafica": 23932,
-  "impianti_pubblicati": 21642,
-  "impianti_precedenti": 21638,
+  "impianti_anagrafica": 23940,
+  "impianti_pubblicati": 21651,
+  "impianti_precedenti": 21642,
   "province": 107,
-  "comuni": 5283,
+  "comuni": 5282,
   "scarti": {
     "coordinate_mancanti": 3,
     "prezzo_fuori_range": 12,
-    "senza_prezzi": 2287
+    "senza_prezzi": 2286
   },
   "cancelli": {
     "impianti": {
       "ok": true,
-      "valore": 0.000185,
-      "soglia": "<= 0.1 rispetto a 21638 (n=21642)"
+      "valore": 0.000416,
+      "soglia": "<= 0.1 rispetto a 21642 (n=21651)"
     },
     "prezzi_fuori_range": {
       "ok": true,
@@ -70,7 +70,7 @@
     },
     "comuni": {
       "ok": true,
-      "valore": 5283,
+      "valore": 5282,
       "soglia": ">= 5000"
     },
     "comuni_bbox": {
@@ -84,7 +84,7 @@
       "soglia": "== 0"
     }
   },
-  "byte_pubblicati": 1511218,
-  "byte_comuni": 87316,
-  "durata_s": 18.32
+  "byte_pubblicati": 1513620,
+  "byte_comuni": 87304,
+  "durata_s": 14.94
 }
