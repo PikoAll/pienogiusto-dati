@@ -40,6 +40,19 @@ def test_old_flow_tests_are_set_aside():
     _set_aside("tests/integration/test_watchdog.py", "def test_")
 
 
+def test_mappa_no_longer_lists_removed_files_as_active():
+    """docs/mappa.md must not describe the set-aside files as live files."""
+    text = (ROOT / "docs/mappa.md").read_text(encoding="utf-8")
+    removed = [
+        "scripts/spinta.sh",
+        "scripts/watchdog.sh",
+        "tests/integration/test_spinta.py",
+        "tests/integration/test_watchdog.py",
+    ] + ["scripts/systemd/" + unit for unit in SYSTEMD_UNITS]
+    still_listed = [p for p in removed if f"`{p}`" in text]
+    assert not still_listed, f"mappa.md still lists: {still_listed}"
+
+
 def test_pi_node_script_no_longer_ignores_removed_tests():
     text = (ROOT / "scripts/nodo-pi/pubblica.sh").read_text(encoding="utf-8")
     assert "test_spinta" not in text
