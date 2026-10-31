@@ -1,11 +1,16 @@
 # Mappa del codice
-<!-- generata da scripts/azienda/mappa-sonnet.py (prima passata, Sonnet); la manutenzione la fa genera-mappa.sh (Ollama): riempie solo le righe vuote -->
+<!-- generata da scripts/azienda/genera-mappa.sh; righe vuote = da completare, rilancia lo script -->
 
-- `.claude/settings.json` — Claude Code project permissions: allows gh and git push origin, denies rm, force pushes and hard resets.
+- `.claude/settings.json` — file dati
 - `.github/workflows/ci.yml` — CI workflow running the pytest suite on push and pull request with Python 3.12.
 - `.github/workflows/pubblica.yml` — Scheduled workflow that runs the pipeline and publishes per-province JSON to GitHub Pages when new prices exist.
 - `.gitignore` — Git ignore rules for generated site output directories.
-- `.rete-di-sicurezza.json` — Safety-net config declaring which mandatory test categories apply to this repo and have no exemptions.
+- `.pytest_cache/.gitignore` —
+- `.pytest_cache/CACHEDIR.TAG` —
+- `.pytest_cache/README.md` —
+- `.pytest_cache/v/cache/lastfailed` —
+- `.pytest_cache/v/cache/nodeids` —
+- `.rete-di-sicurezza.json` — file dati
 - `CLAUDE.md` — Project instructions for agents: data contract rules, fail-closed gates, standard-library-only runtime.
 - `LICENSE` — MIT license text for the repository.
 - `README.md` — Project overview: daily MIMIT fuel data pipeline and the published JSON files consumed by the PienoGiusto app.
@@ -18,7 +23,6 @@
 - `docs/DECISIONI.md` — Record of design decisions taken, such as cron times, price gate threshold and hand-written parser.
 - `docs/RICOGNIZIONE.md` — Reconnaissance of the real MIMIT CSV files: sizes, row counts, encoding, separators and anomalies measured.
 - `docs/nota-di-rilascio.md` — Working-backwards release note describing the user-facing value of the daily validated fuel price data.
-- `pienogiusto_dati/__init__.py` — Package marker for the pienogiusto_dati module, empty.
 - `pienogiusto_dati/cancelli.py` — Fail-closed publication gates that block publishing when the day's data looks anomalous, calibrated on real files.
 - `pienogiusto_dati/comuni.py` — Builds the national municipality list (comuni.json.gz) from published stations for GPS-less search in the app.
 - `pienogiusto_dati/parser.py` — Tolerant parser for the two MIMIT CSV files handling separators, stray quotes and malformed rows.
@@ -52,6 +56,7 @@
 - `tests/regression/test_formati_regressione.py` — Regression tests for the MIMIT file formats seen or possible: old, new, truncated, HTML and cp1252.
 - `tests/smoke/test_avvio.py` — Smoke test checking the real pubblica entrypoint starts as a process.
 - `tests/unit/test_comuni.py` — Unit tests for the national municipality list builder.
+- `tests/unit/test_gitignore.py` —
 - `tests/unit/test_parser.py` — Unit tests for the tolerant MIMIT CSV parser on in-memory bytes.
 - `tests/unit/test_scarica.py` — Unit tests for the robust downloader with the network replaced by fakes.
 - `tests/unit/test_unisci.py` — Unit tests for joining stations and prices and grouping by province.

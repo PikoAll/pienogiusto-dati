@@ -1,6 +1,10 @@
 # Stato e Checkpoint (diario di bordo)
 Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
+## [2026-10-30] PGD-GITIGNORE: ignorare `build/` (branch `feat/22-pgd-gitignore-ignorare-build`)
+- `.gitignore`: aggiunta la sola voce `build/` (output di `pip wheel`/setuptools), accanto a `site/`; nessuna voce Flutter (YAGNI).
+- Test `tests/unit/test_gitignore.py`: `build/lib/...` ignorato, `pienogiusto_dati/build_dati.py` e `local.properties` no.
+
 ## [2026-10-08] Pubblicazione affidabile: cron in piu' e spinta dal mini PC (branch `ci/orari-pubblicazione`)
 - GitHub avvia i cron 5-9 h in ritardo: aggiunti `15 11`, `15 13`, `15 16`, `15 19` UTC a `pubblica.yml` (un giro senza `prezziDel` nuovo non pubblica).
 - `scripts/spinta.sh` + timer utente `pienogiusto-dati-spinta` (09:40, 10:40, 12:10, 14:10, 17:10 ora italiana): se `prezziDel` ha 2 giorni o piu' lancia `gh workflow run`; pausa di 2 h, mai con un giro in corso. 11 test nuovi, 143 verdi.
