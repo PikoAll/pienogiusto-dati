@@ -1,6 +1,12 @@
 # Stato e Checkpoint (diario di bordo)
 Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
+## [2026-10-31] Pulizia del vecchio flusso (card #20, branch `feat/20-pgd-pulizia-del-vecchio-flusso`)
+- Messi da parte con `git mv` in `.backup` (nulla cancellato): `scripts/spinta.sh`, `scripts/watchdog.sh`, `scripts/systemd/` (4 unita'), `tests/integration/test_spinta.py`, `test_watchdog.py`.
+- `scripts/nodo-pi/pubblica.sh`: il passo test torna a `pytest -q` senza `--ignore`; `test_nodo_pi.py` adattato; voci rimosse da `docs/mappa.md`.
+- Test nuovi `tests/unit/test_pulizia_vecchio_flusso.py`; suite 155 verdi.
+- APERTO: README, CLAUDE.md, D10 e `pubblica.yml` citano ancora watchdog/spinta (non toccati: fuori dai file della card); disinstallare i timer sul mini PC.
+
 ## [2026-10-30] PGD-GITIGNORE: ignorare `build/` (branch `feat/22-pgd-gitignore-ignorare-build`)
 - `.gitignore`: aggiunta la sola voce `build/` (output di `pip wheel`/setuptools), accanto a `site/`; nessuna voce Flutter (YAGNI).
 - Test `tests/unit/test_gitignore.py`: `build/lib/...` ignorato, `pienogiusto_dati/build_dati.py` e `local.properties` no.
