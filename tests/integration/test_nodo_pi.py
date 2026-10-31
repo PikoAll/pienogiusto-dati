@@ -157,7 +157,7 @@ def test_passi_in_ordine_test_build_contract(amb):
     assert passi(tmp_path) == ["pytest", "build", "contract"]
     righe = (tmp_path / "chiamate.txt").read_text().splitlines()
     pytest_riga = righe[0]
-    assert "test_spinta.py" in pytest_riga and "test_watchdog.py" in pytest_riga  # excluded from the run
+    assert "test_spinta" not in pytest_riga and "test_watchdog" not in pytest_riga  # old flow set aside
     assert "--uscita" in righe[1]
     assert "--indice-precedente" in righe[1]
 

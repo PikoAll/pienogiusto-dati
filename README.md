@@ -18,44 +18,18 @@ python -m pienogiusto_dati.pubblica --uscita site      # dati veri
 pip install -r requirements-test.txt && pytest -q        # test
 ```
 
-## Watchdog (timer utente, sulla macchina sempre accesa)
-GitHub spegne i workflow schedulati dopo 60 giorni senza attivita' nel repo. `scripts/watchdog.sh`
-controlla ogni giorno alle 10:30 lo stato di `pubblica.yml`; se e' `disabled_inactivity` lo riattiva
-e lancia un run. Diario: `~/.local/state/pienogiusto-watchdog.log`. Serve `gh` autenticato come PikoAll.
-Installato e attivo sul mini PC (verificato il 2026-10-03: timer `enabled`/`active`, diario con
-`stato=active`). Installazione su una macchina nuova:
-
-```bash
-mkdir -p ~/.config/systemd/user
-ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-watchdog.service ~/.config/systemd/user/
-ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-watchdog.timer ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now pienogiusto-watchdog.timer
-systemctl --user start pienogiusto-watchdog.service && tail -n 1 ~/.local/state/pienogiusto-watchdog.log
-loginctl show-user "$USER" -p Linger   # Linger=no: il timer gira solo con la sessione aperta
-```
-
-## Spinta della pubblicazione (timer utente, stessa macchina)
-I cron di GitHub partono 5-9 h in ritardo. `scripts/spinta.sh` legge l'`index.json` pubblicato alle
-09:40, 10:40, 12:10, 14:10 e 17:10 (ora italiana); se `prezziDel` e' di due giorni fa o piu' vecchio
-(manca il dato atteso oggi), non c'e' un giro in corso e l'ultimo lancio e' di piu' di 2 h fa, lancia
-`gh workflow run pubblica.yml`. Il workflow pubblica solo con `prezziDel` nuovo, quindi una spinta
-inutile non cambia nulla. Diario: `~/.local/state/pienogiusto/spinta.log`. Prova a secco:
-`scripts/spinta.sh --prova`. Installazione (come il watchdog, con `pienogiusto-dati-spinta.*`):
-
-```bash
-ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-dati-spinta.service ~/.config/systemd/user/
-ln -s ~/Scrivania/progetti/pienogiusto-dati/scripts/systemd/pienogiusto-dati-spinta.timer ~/.config/systemd/user/
-systemctl --user daemon-reload && systemctl --user enable --now pienogiusto-dati-spinta.timer
-```
-
-Il watchdog sopra NON controlla l'eta' dei dati: guarda solo che il workflow sia attivo.
+## Pubblicazione (nodo Pi, branch gh-pages)
+Dal 2026-10-30 pubblica la Raspberry Pi: `scripts/nodo-pi/pubblica.sh` (timer utente
+`azienda-pienogiusto.timer`) esegue test, build e cancelli e poi pubblica il sito come commit unico sul
+branch `gh-pages`, da cui serve GitHub Pages. Dettagli e installazione: D13 in `docs/DECISIONI.md`.
+Il vecchio flusso (workflow `pubblica.yml`, spinta e watchdog) e' messo da parte: gli script e i test
+sono in file `.backup`; i passi manuali per spegnerlo sono in `docs/DECISIONI.md` (D13).
 
 ## Controlli
 
 - Test: `pip install -r requirements-test.txt && pytest -q` (132 test verdi il 2026-10-04).
 - CI reale: `.github/workflows/ci.yml` su ogni push e pull request (`pytest -q`, Python 3.12,
-  ubuntu-24.04). `pubblica.yml` e' la pubblicazione giornaliera (cron + avvio manuale), non la CI.
+  ubuntu-24.04). `pubblica.yml` e' la vecchia pubblicazione giornaliera (cron + avvio manuale), non la CI.
 - Workflow modificati: `actionlint .github/workflows/*.yml` prima della PR.
 - Rete di sicurezza: `python3 ~/Scrivania/arsenale-ai/scripts/verifica-rete-di-sicurezza.py .`
   (0 = verde; nessuna esenzione in `.rete-di-sicurezza.json`).

@@ -13,8 +13,15 @@ esac
 
 cd "$(dirname "$0")/.." || exit 1
 
+# Interpreter with pytest: system python3 if it has it, else the lotto-card venv.
+PY="python3"
+if ! "$PY" -c "import pytest" 2>/dev/null; then
+  VENV_PY="$HOME/.local/state/lotto-card/venv-pgd/bin/python"
+  [ -x "$VENV_PY" ] && PY="$VENV_PY"
+fi
+
 echo "=== pytest ==="
-if ! python3 -m pytest -q -p no:cacheprovider; then
+if ! "$PY" -m pytest -q -p no:cacheprovider; then
   echo "✗ ROSSO: 'pytest' (profilo $PROFILO)"
   exit 1
 fi

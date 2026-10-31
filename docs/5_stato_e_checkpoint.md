@@ -1,6 +1,13 @@
 # Stato e Checkpoint (diario di bordo)
 Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
+## [2026-10-31] Pulizia del vecchio flusso (card #20, branch `feat/20-pgd-pulizia-del-vecchio-flusso`)
+- Messi da parte con `git mv` in `.backup` (nulla cancellato): gli script di spinta e watchdog, `scripts/systemd/` (4 unita'), `tests/integration/test_spinta.py`, `test_watchdog.py`.
+- `scripts/nodo-pi/pubblica.sh`: il passo test torna a `pytest -q` senza `--ignore`; `test_nodo_pi.py` adattato; voci rimosse da `docs/mappa.md`.
+- Test nuovi `tests/unit/test_pulizia_vecchio_flusso.py`; suite 155 verdi.
+- README, CLAUDE.md, architettura e D10 (marcata «sostituita da D13») aggiornati; passi manuali per Giuseppe in D13.
+- APERTO (manuale): disinstallare i timer sul mini PC, spegnere `pubblica.yml` (la pipeline non tocca i workflow).
+
 ## [2026-10-30] PGD-GITIGNORE: ignorare `build/` (branch `feat/22-pgd-gitignore-ignorare-build`)
 - `.gitignore`: aggiunta la sola voce `build/` (output di `pip wheel`/setuptools), accanto a `site/`; nessuna voce Flutter (YAGNI).
 - Test `tests/unit/test_gitignore.py`: `build/lib/...` ignorato, `pienogiusto_dati/build_dati.py` e `local.properties` no.
@@ -12,8 +19,8 @@ Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
 ## [2026-10-08] Pubblicazione affidabile: cron in piu' e spinta dal mini PC (branch `ci/orari-pubblicazione`)
 - GitHub avvia i cron 5-9 h in ritardo: aggiunti `15 11`, `15 13`, `15 16`, `15 19` UTC a `pubblica.yml` (un giro senza `prezziDel` nuovo non pubblica).
-- `scripts/spinta.sh` + timer utente `pienogiusto-dati-spinta` (09:40, 10:40, 12:10, 14:10, 17:10 ora italiana): se `prezziDel` ha 2 giorni o piu' lancia `gh workflow run`; pausa di 2 h, mai con un giro in corso. 11 test nuovi, 143 verdi.
-- Il watchdog (`scripts/watchdog.sh`, timer 10:30) e' installato e attivo dal 2026-09-30 ma guarda solo che il workflow sia attivo: non controlla l'eta' dei dati e non ha un canale di avviso (APERTO: avviso Telegram se spinta va in ERRORE o `prezziDel` supera 3 giorni).
+- Script di spinta (ora `.backup`) + timer utente `pienogiusto-dati-spinta` (09:40, 10:40, 12:10, 14:10, 17:10 ora italiana): se `prezziDel` ha 2 giorni o piu' lancia `gh workflow run`; pausa di 2 h, mai con un giro in corso. 11 test nuovi, 143 verdi.
+- Il watchdog (ora `.backup`, timer 10:30) e' installato e attivo dal 2026-09-30 ma guarda solo che il workflow sia attivo: non controlla l'eta' dei dati e non ha un canale di avviso (APERTO: avviso Telegram se spinta va in ERRORE o `prezziDel` supera 3 giorni).
 
 ## [2026-10-04] Elenco nazionale dei comuni (branch `feat/comuni`, PR verso main)
 - `comuni.json.gz` + chiave `comuni` in `index.json` (schema resta 1); modulo `pienogiusto_dati/comuni.py`.
@@ -23,7 +30,7 @@ Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
 ## [2026-09-30] Giro 2
 - Cancelli nuovi: `dati_fermi` (niente ripubblicazione se `prezziDel` non avanza, rosso oltre 3 giorni) e `codifica` (U+FFFD > 0,1%).
-- Keepalive tolto; watchdog `scripts/watchdog.sh` + timer systemd utente (NON installato). LICENSE MIT per il codice.
+- Keepalive tolto; watchdog (script ora `.backup`) + timer systemd utente (NON installato). LICENSE MIT per il codice.
 - actionlint 1.7.12 pulito. Dominio: nessun sito utente, URL `https://pikoall.github.io/pienogiusto-dati/`.
 
 ## [2026-09-30] Inizializzazione

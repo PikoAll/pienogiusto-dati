@@ -59,6 +59,8 @@ Righe con `�` (U+FFFD) dopo la decodifica > **0,1%** per file -> rosso. Misura
 all'origine (UTF-8 che contiene U+FFFD).
 
 ### D10 · Keepalive tolto, watchdog al suo posto (giro 2)
+> **Decisione sostituita da D13** (2026-10-31): watchdog e spinta sono messi da parte in `.backup`. Testo originale sotto, invariato.
+
 Il job `keepalive` (riattivazione via API da dentro il workflow) e' stato **tolto**: nessuna prova che azzeri il
 contatore dei 60 giorni (vedi R1), e un workflow gia' disattivato non gira, quindi non puo' riattivarsi da solo.
 Al suo posto `scripts/watchdog.sh` + timer systemd utente (ogni giorno 10:30, `Persistent=true`), scelto da Cowork:
@@ -100,7 +102,7 @@ Peso: 87 KB gzip (342 KB JSON) per 5.286 comuni.
 **Motivo.** Dal 29/10 il workflow `pubblica` fallisce per timeout del MIMIT dai runner GitHub. Dal 2026-10-30 la
 Raspberry Pi pubblica davvero (gh-pages «prezziDel 2026-10-29 (Raspberry Pi)», build Pages `built`). Il flusso
 viveva solo sulla Pi: ora script e unita' sono nel repo (`scripts/nodo-pi/`).
-**Flusso.** `pubblica.sh`: test (senza `test_spinta.py` e `test_watchdog.py`) -> scarica + cancelli + build in
+**Flusso.** `pubblica.sh`: test (tutta la suite) -> scarica + cancelli + build in
 `~/.local/state/azienda/pienogiusto/site` -> contract test (`PIENOGIUSTO_SITE`) -> pubblicazione. Un passo fallito
 ferma tutto (exit 1, nessun push) e invia UN Telegram «PienoGiusto dalla Pi: fallito al passo X» (token da file env,
 mai stampato). `PUBBLICA=no` (default) salta git. Se `index.json` online ha gia' lo stesso `prezziDel`, esce 0.
@@ -121,7 +123,12 @@ systemctl --user enable --now azienda-pienogiusto.timer
 systemctl --user list-timers azienda-pienogiusto.timer
 ```
 Orari Europe/Rome 09:15 11:15 13:15 15:15 18:15 21:15, `RandomizedDelaySec=2min`, `Persistent=true`.
-Spegnere il vecchio workflow `pubblica` e' lavoro della card «pulizia del vecchio flusso».
+Il vecchio flusso (spinta, watchdog, unita' systemd e relativi test) e' messo da parte in `.backup` dalla card #20.
+**Passi MANUALI per Giuseppe** (non automatizzabili dalla pipeline):
+1. Sul mini PC, spegnere i timer vecchi:
+   `systemctl --user disable --now pienogiusto-dati-spinta.timer pienogiusto-watchdog.timer`
+2. Spegnere il vecchio workflow: `gh api -X PUT repos/PikoAll/pienogiusto-dati/actions/workflows/pubblica.yml/disable`
+3. Rimuovere (o tenere come `.backup`) `.github/workflows/pubblica.yml`: la pipeline non puo' toccare i workflow.
 
 ## Rischi aperti
 
