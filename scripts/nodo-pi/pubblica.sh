@@ -81,7 +81,7 @@ prezzi_del() {  # reads an index.json on stdin, prints prezziDel
 
 PASSO="test"
 echo "== $PASSO"
-"$PY" -m pytest -q --ignore=tests/integration/test_spinta.py --ignore=tests/integration/test_watchdog.py
+"$PY" -m pytest -q
 
 PASSO="build"
 echo "== $PASSO"
