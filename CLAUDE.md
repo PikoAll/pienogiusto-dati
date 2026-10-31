@@ -10,8 +10,8 @@ Repo PUBBLICO: pipeline MIMIT -> JSON per provincia su GitHub Pages per l'app Pi
 - Cancelli FAIL-CLOSED (`pienogiusto_dati/cancelli.py`): nessuna soglia si allenta senza misurarla sui
   dati reali e scriverlo in `docs/DECISIONI.md`.
 - Ogni formato nuovo visto dal MIMIT = una fixture in `tests/fixtures/` + un test in `tests/regression/`.
-- Nessun commit dei dati: si pubblicano come artefatto Pages. Nessun commit automatico di keepalive:
-  lo spegnimento per inattivita' lo gestisce `scripts/watchdog.sh` (timer utente, docs/DECISIONI.md D10).
+- Nessun commit dei dati su `main`: si pubblicano dal nodo Pi sul branch `gh-pages`
+  (`scripts/nodo-pi/pubblica.sh`, docs/DECISIONI.md D13). Il vecchio watchdog/spinta e' messo da parte (D10 sostituita da D13).
 - Workflow: `actionlint .github/workflows/*.yml` prima di proporre modifiche.
 - Test: `pytest -q`. Rete: `python3 ~/Scrivania/arsenale-ai/scripts/verifica-rete-di-sicurezza.py .`
 - git add/commit/push li fa Giuseppe.

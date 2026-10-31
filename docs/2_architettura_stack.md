@@ -1,6 +1,6 @@
 # Architettura e Stack
 - Python 3.12, solo libreria standard a runtime (urllib, csv-free parsing, json, gzip, zoneinfo). `pytest` solo per i test.
-- GitHub Actions (`pubblica.yml`) -> artefatto -> GitHub Pages. Nessun commit dei dati.
+- Nodo Pi (`scripts/nodo-pi/pubblica.sh`, timer utente) -> branch `gh-pages` (commit unico) -> GitHub Pages (D13). Nessun commit dei dati su `main`.
 - Contratto con l'app: `docs/CONTRATTO.md` (schema 1). Fonte di verità per l'app Flutter.
 
 ## Pipeline
