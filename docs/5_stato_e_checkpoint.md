@@ -5,6 +5,11 @@ Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 - `.gitignore`: aggiunta la sola voce `build/` (output di `pip wheel`/setuptools), accanto a `site/`; nessuna voce Flutter (YAGNI).
 - Test `tests/unit/test_gitignore.py`: `build/lib/...` ignorato, `pienogiusto_dati/build_dati.py` e `local.properties` no.
 
+## [2026-10-30] Pubblicazione dal nodo Pi nel repo (card #19, branch `feat/19-pgd-pubblicazione-da-nodo-pi-s`)
+- `scripts/nodo-pi/pubblica.sh` + unita' `--user` `azienda-pienogiusto.service/.timer` (Europe/Rome 09:15 11:15 13:15 15:15 18:15 21:15): test -> build -> contract -> `gh-pages` come commit unico con `.nojekyll`, `--force-with-lease` solo su `gh-pages`. Fail-closed, un Telegram su errore, residui spostati in `residui/` (mai cancellati). Codice di `pienogiusto_dati/` invariato.
+- D13 in `docs/DECISIONI.md` (motivo, alternative scartate, installazione con `systemctl --user`). 20 test nuovi in `tests/integration/test_nodo_pi.py`, 163 verdi.
+- APERTO: installazione sulla Pi (Giuseppe) e spegnimento del vecchio workflow `pubblica` (card «pulizia del vecchio flusso»).
+
 ## [2026-10-08] Pubblicazione affidabile: cron in piu' e spinta dal mini PC (branch `ci/orari-pubblicazione`)
 - GitHub avvia i cron 5-9 h in ritardo: aggiunti `15 11`, `15 13`, `15 16`, `15 19` UTC a `pubblica.yml` (un giro senza `prezziDel` nuovo non pubblica).
 - `scripts/spinta.sh` + timer utente `pienogiusto-dati-spinta` (09:40, 10:40, 12:10, 14:10, 17:10 ora italiana): se `prezziDel` ha 2 giorni o piu' lancia `gh workflow run`; pausa di 2 h, mai con un giro in corso. 11 test nuovi, 143 verdi.

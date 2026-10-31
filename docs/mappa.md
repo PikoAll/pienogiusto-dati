@@ -31,6 +31,9 @@
 - `pienogiusto_dati/unisci.py` — Joins stations and prices by station id, filters invalid ones and groups results by province.
 - `pyproject.toml` — Python project metadata: name, version, Python 3.12 requirement, no runtime dependencies, pytest as test extra.
 - `requirements-test.txt` — Pinned test dependency list containing pytest for CI.
+- `scripts/nodo-pi/azienda-pienogiusto.service` —
+- `scripts/nodo-pi/azienda-pienogiusto.timer` —
+- `scripts/nodo-pi/pubblica.sh` —
 - `scripts/spinta.sh` — Script that manually launches the publish workflow when the published prices are two or more days old.
 - `scripts/systemd/pienogiusto-dati-spinta.service` — Systemd user service that runs spinta.sh to push the publish workflow.
 - `scripts/systemd/pienogiusto-dati-spinta.timer` — Systemd timer running the push service five times a day in Rome time.
@@ -49,6 +52,7 @@
 - `tests/fixtures/prezzi_reale.csv` — Fixture with the real extract of MIMIT price rows for the fixture stations.
 - `tests/fixtures/prezzi_troncato.csv` — Fixture price file truncated mid-row to test truncated download detection.
 - `tests/fixtures/prezzi_virgola.csv` — Fixture price file in the old comma-separated format without the Estrazione line.
+- `tests/integration/test_nodo_pi.py` —
 - `tests/integration/test_pipeline.py` — Integration tests running the whole pipeline on the real extract from bytes to site files on disk.
 - `tests/integration/test_spinta.py` — Integration tests for spinta.sh using a fake gh command and a local index file.
 - `tests/integration/test_watchdog.py` — Integration tests for watchdog.sh using a fake gh command in PATH.

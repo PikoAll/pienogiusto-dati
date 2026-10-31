@@ -96,6 +96,33 @@ Cancelli nuovi, misurati sui dati reali:
   `com` non vuoto su ogni impianto).
 Peso: 87 KB gzip (342 KB JSON) per 5.286 comuni.
 
+### D13 · Pubblicazione dal nodo di casa, Pages da branch gh-pages (2026-10-30)
+**Motivo.** Dal 29/10 il workflow `pubblica` fallisce per timeout del MIMIT dai runner GitHub. Dal 2026-10-30 la
+Raspberry Pi pubblica davvero (gh-pages «prezziDel 2026-10-29 (Raspberry Pi)», build Pages `built`). Il flusso
+viveva solo sulla Pi: ora script e unita' sono nel repo (`scripts/nodo-pi/`).
+**Flusso.** `pubblica.sh`: test (senza `test_spinta.py` e `test_watchdog.py`) -> scarica + cancelli + build in
+`~/.local/state/azienda/pienogiusto/site` -> contract test (`PIENOGIUSTO_SITE`) -> pubblicazione. Un passo fallito
+ferma tutto (exit 1, nessun push) e invia UN Telegram «PienoGiusto dalla Pi: fallito al passo X» (token da file env,
+mai stampato). `PUBBLICA=no` (default) salta git. Se `index.json` online ha gia' lo stesso `prezziDel`, esce 0.
+Log e cartelle precedenti vanno in `residui/`, oltre 7 giorni in `residui/vecchi/` (mai cancellati).
+**Alternative scartate.**
+1. Runner self-hosted sulla Pi: richiede Node sulla Pi per l'agent e le action.
+2. Pages via Actions (`deploy-pages`): richiede l'OIDC dei runner GitHub-hosted.
+**Rischio crescita di gh-pages: risolto** da un commit unico (orfano) a ogni pubblicazione, con contenuto di `site/` piu'
+`.nojekyll`. Autorizzato da Giuseppe (2026-10-30) il `push --force-with-lease` SOLO su `gh-pages`; ogni altro
+ramo resta vietato (un test su remote bare verifica che `main` e gli altri rami non cambiano).
+**Installazione sulla Pi** (a cura di Giuseppe; remote e deploy key `git@github-pienogiusto:...` sono configurazione
+della Pi, passata come `PUBBLICA_REMOTO` dall'unita'):
+```
+mkdir -p ~/.config/systemd/user
+cp scripts/nodo-pi/azienda-pienogiusto.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now azienda-pienogiusto.timer
+systemctl --user list-timers azienda-pienogiusto.timer
+```
+Orari Europe/Rome 09:15 11:15 13:15 15:15 18:15 21:15, `RandomizedDelaySec=2min`, `Persistent=true`.
+Spegnere il vecchio workflow `pubblica` e' lavoro della card «pulizia del vecchio flusso».
+
 ## Rischi aperti
 
 ### R1 · Spegnimento del workflow dopo 60 giorni — MITIGATO dal watchdog (D10), resta un rischio residuo
