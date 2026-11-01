@@ -16,8 +16,13 @@ cd "$(dirname "$0")/.." || exit 1
 # Interpreter with pytest: system python3 if it has it, else the lotto-card venv.
 PY="python3"
 if ! "$PY" -c "import pytest" 2>/dev/null; then
-  VENV_PY="$HOME/.local/state/lotto-card/venv-pgd/bin/python"
-  [ -x "$VENV_PY" ] && PY="$VENV_PY"
+  # $HOME may differ in the gate's environment: also try the owner's home and the state dir variable.
+  for VENV_PY in \
+    "$HOME/.local/state/lotto-card/venv-pgd/bin/python" \
+    "${XDG_STATE_HOME:-/nonexistent}/lotto-card/venv-pgd/bin/python" \
+    "/home/anonimo/.local/state/lotto-card/venv-pgd/bin/python"; do
+    if [ -x "$VENV_PY" ]; then PY="$VENV_PY"; break; fi
+  done
 fi
 
 echo "=== pytest ==="
