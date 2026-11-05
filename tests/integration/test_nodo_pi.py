@@ -8,7 +8,7 @@ No network, no token, no real key. Contract between the script and these tests:
   - PIENOGIUSTO_INDEX_URL   URL (here file://) of the online index.json, to compare `prezziDel`;
   - PUBBLICA=si|no          (default no) enables the git part; PUBBLICA_REMOTO = remote URL/path;
   - PIENOGIUSTO_ENV_FILE    env file with TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID;
-  - steps, in order, named: test, build, contract, pubblicazione.
+  - steps, in order, named: test, build, contract, pubblicazione, verifica (verifica only after a real push).
 The stub python records "pytest ...", "build ..." (-m pienogiusto_dati.pubblica --uscita DIR ...) and
 "contract ..." (-m pytest with PIENOGIUSTO_SITE set) in $STUB_CHIAMATE; a stub curl records Telegram calls.
 """
@@ -47,6 +47,12 @@ if [ "$1" = "-m" ] && [ "$2" = "pienogiusto_dati.pubblica" ]; then
   echo "{\"schema\":1,\"prezziDel\":\"$STUB_PREZZI_DEL\",\"province\":[],\"comuni\":\"comuni.json.gz\"}" > "$uscita/index.json"
   echo dati > "$uscita/p/MI.json.gz"
   echo "{}" > "$uscita/report.json"
+  exit 0
+fi
+if [ "$1" = "-m" ] && [ "$2" = "pienogiusto_dati.verifica_pubblico" ]; then
+  echo "verifica $*" >> "$STUB_CHIAMATE"
+  if [ "$STUB_FALLISCE" = "verifica" ]; then echo "verifica-fallita: pubblicato diverso"; exit 1; fi
+  echo "verifica-ok"
   exit 0
 fi
 exec /usr/bin/python3 "$@"
@@ -154,7 +160,7 @@ def test_passi_in_ordine_test_build_contract(amb):
     tmp_path, env, remoto, stato = amb
     r = lancia(env, PUBBLICA="si")
     assert r.returncode == 0, r.stderr
-    assert passi(tmp_path) == ["pytest", "build", "contract"]
+    assert passi(tmp_path) == ["pytest", "build", "contract", "verifica"]
     righe = (tmp_path / "chiamate.txt").read_text().splitlines()
     pytest_riga = righe[0]
     assert "test_spinta" not in pytest_riga and "test_watchdog" not in pytest_riga  # old flow set aside
@@ -328,6 +334,59 @@ def test_successo_non_invia_telegram(amb):
     r = lancia(env, PUBBLICA="si", PIENOGIUSTO_ENV_FILE=str(envfile))
     assert r.returncode == 0, r.stderr
     assert telegram(tmp_path) == []
+
+
+# ---- criterio 9: verifica post-pubblicazione ----------------------------------------------------------------
+
+def test_verifica_chiamata_dopo_il_push_con_url_e_atteso(amb):
+    tmp_path, env, remoto, stato = amb
+    r = lancia(env, PUBBLICA="si")
+    assert r.returncode == 0, r.stderr
+    riga = [x for x in (tmp_path / "chiamate.txt").read_text().splitlines() if x.startswith("verifica")]
+    assert len(riga) == 1
+    assert f"--url {env['PIENOGIUSTO_INDEX_URL']}" in riga[0]
+    assert f"--atteso {stato}/site/index.json" in riga[0]
+    assert telegram(tmp_path) == []
+
+
+def test_verifica_fallita_notifica_esce_1_e_non_tocca_gh_pages(amb):
+    tmp_path, env, remoto, stato = amb
+    envfile = tmp_path / "telegram.env"
+    envfile.write_text("TELEGRAM_BOT_TOKEN=SEGRETO123TOKEN\nTELEGRAM_CHAT_ID=424242\n")
+    r = lancia(env, PUBBLICA="si", PIENOGIUSTO_ENV_FILE=str(envfile), STUB_FALLISCE="verifica")
+    assert r.returncode == 1
+    assert "verifica-fallita" in r.stdout and "pubblicato diverso" in r.stdout
+    assert passi(tmp_path) == ["pytest", "build", "contract", "verifica"]
+    # gh-pages stays the single commit just pushed: no rollback, no second push
+    assert git(remoto, "rev-list", "--count", "gh-pages") == "1"
+    assert "2026-10-29" in git(remoto, "log", "-1", "--format=%s", "gh-pages")
+    chiamate = telegram(tmp_path)
+    assert len(chiamate) == 1
+    testo = chiamate[0].replace("%20", " ").replace("+", " ")
+    assert "verifica-fallita" in testo and "pubblicato diverso" in testo
+    assert "SEGRETO123TOKEN" not in r.stdout + r.stderr
+    assert "SEGRETO123TOKEN" not in tutto_il_testo(stato)
+
+
+def test_verifica_non_eseguita_se_non_si_pubblica(amb):
+    tmp_path, env, remoto, stato = amb
+    # PUBBLICA=no
+    assert lancia(env).returncode == 0
+    assert "verifica" not in passi(tmp_path)
+    # same prezziDel online
+    (tmp_path / "online" / "index.json").write_text(
+        '{"schema":1,"prezziDel":"%s","province":[]}' % PREZZI_DEL)
+    assert lancia(env, PUBBLICA="si").returncode == 0
+    # no site
+    assert lancia(env, PUBBLICA="si", STUB_NIENTE_SITE="1").returncode == 0
+    assert "verifica" not in passi(tmp_path)
+
+
+def test_verifica_non_eseguita_se_il_push_fallisce(amb):
+    tmp_path, env, remoto, stato = amb
+    r = lancia(env, PUBBLICA="si", PUBBLICA_REMOTO=str(tmp_path / "non-esiste.git"))
+    assert r.returncode != 0
+    assert "verifica" not in passi(tmp_path)
 
 
 # ---- criterio 7: unita' systemd --user nel repo ------------------------------------------------------------
