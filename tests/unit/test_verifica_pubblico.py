@@ -101,10 +101,23 @@ def test_cli_ok(base_url, capsys):
     assert capsys.readouterr().out.strip() == "verifica-ok"
 
 
-def test_cli_fallita(base_url, capsys, monkeypatch):
-    monkeypatch.setattr(vp.time, "sleep", lambda s: None)
+def test_cli_default_tentativi_e_attesa(monkeypatch):
+    visti = {}
+
+    def finto(url, atteso, **kw):
+        visti.update(kw)
+        return vp.Esito(ok=True, motivo="", tentativi=1)
+
+    monkeypatch.setattr(vp, "verifica", finto)
+    assert vp.main(["--url", "http://x/index.json",
+                    "--atteso", str(PUBBLICO / "index_ok.json")]) == 0
+    assert visti == {"tentativi": 3, "attesa": 30}
+
+
+def test_cli_fallita(base_url, capsys):
     rc = vp.main(["--url", base_url + "/index_vecchio.json",
-                  "--atteso", str(PUBBLICO / "index_ok.json")])
+                  "--atteso", str(PUBBLICO / "index_ok.json"),
+                  "--attesa", "0"])
     assert rc == 1
     out = capsys.readouterr().out.strip()
     assert out.startswith("verifica-fallita: data vecchia")

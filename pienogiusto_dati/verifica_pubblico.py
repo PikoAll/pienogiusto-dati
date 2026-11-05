@@ -69,6 +69,8 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="verifica_pubblico")
     parser.add_argument("--url", required=True)
     parser.add_argument("--atteso", required=True, help="local index.json just published")
+    parser.add_argument("--tentativi", type=int, default=3, help="max attempts")
+    parser.add_argument("--attesa", type=float, default=30, help="seconds between attempts")
     try:
         args = parser.parse_args(argv)
     except SystemExit:
@@ -80,7 +82,7 @@ def main(argv=None) -> int:
     except (OSError, ValueError, KeyError, TypeError) as e:
         print(f"file atteso non utilizzabile: {e}", file=sys.stderr)
         return 2
-    esito = verifica(args.url, atteso)
+    esito = verifica(args.url, atteso, tentativi=args.tentativi, attesa=args.attesa)
     if esito.ok:
         print("verifica-ok")
         return 0
