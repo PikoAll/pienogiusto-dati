@@ -2,10 +2,13 @@
 # Publishes the PienoGiusto data from the home node (Raspberry Pi), run by azienda-pienogiusto.timer.
 #
 # Steps, in order, fail-closed (a failed step stops everything, exit 1, no push):
-#   test -> build (download + gates, output in $PIENOGIUSTO_STATO/site) -> contract -> pubblicazione
+#   test -> build (download + gates, output in $PIENOGIUSTO_STATO/site) -> contract -> pubblicazione -> verifica
 # Publication: gh-pages becomes ONE orphan commit with the content of site/ plus .nojekyll, pushed with
 # --force-with-lease ONLY on gh-pages (never on other branches). If the online index.json already has the same
 # prezziDel nothing is committed or pushed.
+# Verification: only after a successful push, pienogiusto_dati.verifica_pubblico compares the online index.json
+# ($PIENOGIUSTO_INDEX_URL) with the local one. If it fails: log + one Telegram with the motivo, exit 1; gh-pages is
+# left as pushed (no rollback, no second push).
 #
 # Environment (all optional):
 #   PUBBLICA=si|no            enable the git part (default no: prints "git saltato")
@@ -42,9 +45,12 @@ find "$RESIDUI" -mindepth 1 -maxdepth 1 -not -name vecchi -mtime +7 -exec mv -t 
 exec > >(tee -a "$LOG") 2>&1
 
 PASSO="preparazione"
+MOTIVO=""
 
 notifica() {
-  local passo="$1" token="" chat=""
+  local passo="$1" motivo="${2:-}" token="" chat="" testo=""
+  testo="PienoGiusto dalla Pi: fallito al passo $passo"
+  [ -z "$motivo" ] || testo="PienoGiusto dalla Pi: $motivo"
   if [ ! -f "$ENV_FILE" ]; then
     echo "Telegram non inviato: file env assente ($ENV_FILE)"
     return 0
@@ -56,7 +62,7 @@ notifica() {
     return 0
   fi
   if curl -s --max-time 20 -o /dev/null -d "chat_id=$chat" \
-      --data-urlencode "text=PienoGiusto dalla Pi: fallito al passo $passo" \
+      --data-urlencode "text=$testo" \
       "https://api.telegram.org/bot${token}/sendMessage"; then
     echo "Telegram inviato"
   else
@@ -69,7 +75,7 @@ alla_fine() {
   trap - EXIT
   if [ "$rc" -ne 0 ]; then
     echo "ERRORE: fallito al passo $PASSO (exit $rc)"
-    notifica "$PASSO" || true
+    notifica "$PASSO" "$MOTIVO" || true
   fi
   exit "$rc"
 }
@@ -127,3 +133,12 @@ git -C "$PAGES" -c user.name="PienoGiusto Pi" -c user.email="pienogiusto-pi@loca
   commit -q -m "prezziDel $nuovo (Raspberry Pi)"
 git -C "$PAGES" push -q --force-with-lease="gh-pages:$atteso" "$REMOTO" gh-pages:refs/heads/gh-pages
 echo "gh-pages pubblicato: prezziDel $nuovo"
+
+PASSO="verifica"
+echo "== $PASSO"
+if ! esito="$("$PY" -m pienogiusto_dati.verifica_pubblico --url "$INDEX_URL" --atteso "$SITE/index.json")"; then
+  echo "$esito"
+  MOTIVO="$esito"
+  exit 1
+fi
+echo "$esito"

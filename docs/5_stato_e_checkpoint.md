@@ -1,6 +1,12 @@
 # Stato e Checkpoint (diario di bordo)
 Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
+## [2026-11-05] Verifica dei dati sull'URL pubblico dopo il deploy (card #6, branch `feat/6-pgd-verifica-pubblico`)
+- Nuovo `pienogiusto_dati/verifica_pubblico.py`: scarica l'`index.json` online e controlla HTTP 200, JSON valido, stesso `pubblicato` e stesso numero di province del build locale; 3 tentativi a 30 s.
+- `scripts/nodo-pi/pubblica.sh`: passo `verifica` dopo il push su `gh-pages`; se fallisce scrive `verifica-fallita: <motivo>`, manda il Telegram col motivo ed esce 1 (gh-pages intatto). D14 in `docs/DECISIONI.md`.
+- 12 test unit + 4 di integrazione nuovi (fixture in `tests/fixtures/pubblico/`).
+- APERTO: misurare sulla Pi il ritardo di Pages; se supera ~60 s, alzare `--tentativi`/`--attesa`.
+
 ## [2026-10-31] Pulizia del vecchio flusso (card #20, branch `feat/20-pgd-pulizia-del-vecchio-flusso`)
 - Messi da parte con `git mv` in `.backup` (nulla cancellato): gli script di spinta e watchdog, `scripts/systemd/` (4 unita'), `tests/integration/test_spinta.py`, `test_watchdog.py`.
 - `scripts/nodo-pi/pubblica.sh`: il passo test torna a `pytest -q` senza `--ignore`; `test_nodo_pi.py` adattato; voci rimosse da `docs/mappa.md`.

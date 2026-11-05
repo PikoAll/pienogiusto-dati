@@ -130,6 +130,17 @@ Il vecchio flusso (spinta, watchdog, unita' systemd e relativi test) e' messo da
 2. Spegnere il vecchio workflow: `gh api -X PUT repos/PikoAll/pienogiusto-dati/actions/workflows/pubblica.yml/disable`
 3. Rimuovere (o tenere come `.backup`) `.github/workflows/pubblica.yml`: la pipeline non puo' toccare i workflow.
 
+### D14 · Verifica dei dati sull'URL pubblico dopo il deploy (2026-11-05, card #6)
+**Cosa.** Dopo il push su `gh-pages`, `pubblica.sh` (passo `verifica`) lancia `python -m pienogiusto_dati.verifica_pubblico`
+sullo stesso `$INDEX_URL` e lo confronta con l'`index.json` appena costruito: HTTP 200, JSON valido, stesso
+`pubblicato` (la "data della corsa"), stesso numero di province. Fino a 3 tentativi a 30 s l'uno dall'altro.
+Fallimento -> riga `verifica-fallita: <motivo>`, Telegram col motivo, exit 1; `gh-pages` resta com'e' (nessun rollback).
+Niente verifica con `PUBBLICA=no`, con lo stesso `prezziDel` gia' online, senza `site/` o se il push e' fallito.
+**Scostamento dai "File toccati" della card.** L'aggancio e' in `scripts/nodo-pi/pubblica.sh`, non in `pubblica.py`:
+dal 2026-10-30 il deploy lo fa lo script della Pi (D13), e solo li' si sa che il push e' riuscito.
+**Rischio.** Pages puo' metterci piu' di ~60 s (3 x 30 s) a servire il commit nuovo: falso `verifica-fallita`
+(«data vecchia»). Da misurare sulla Pi; se succede, alzare `--tentativi`/`--attesa` in `pubblica.sh`.
+
 ## Rischi aperti
 
 ### R1 · Spegnimento del workflow dopo 60 giorni — MITIGATO dal watchdog (D10), resta un rischio residuo
