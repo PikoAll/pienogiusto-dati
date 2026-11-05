@@ -28,6 +28,7 @@
 - `pienogiusto_dati/parser.py` — Tolerant parser for the two MIMIT CSV files handling separators, stray quotes and malformed rows.
 - `pienogiusto_dati/pubblica.py` — Pipeline entry point: downloads, parses, joins, applies gates and writes the site output files.
 - `pienogiusto_dati/scarica.py` — Robust downloader for the MIMIT files and the previously published index, with retries and validation.
+- `pienogiusto_dati/verifica_pubblico.py` — Post-publication check: downloads the public index.json and compares date and province count with the local one, with retries.
 - `pienogiusto_dati/unisci.py` — Joins stations and prices by station id, filters invalid ones and groups results by province.
 - `pyproject.toml` — Python project metadata: name, version, Python 3.12 requirement, no runtime dependencies, pytest as test extra.
 - `requirements-test.txt` — Pinned test dependency list containing pytest for CI.
@@ -55,4 +56,5 @@
 - `tests/unit/test_gitignore.py` —
 - `tests/unit/test_parser.py` — Unit tests for the tolerant MIMIT CSV parser on in-memory bytes.
 - `tests/unit/test_scarica.py` — Unit tests for the robust downloader with the network replaced by fakes.
+- `tests/unit/test_verifica_pubblico.py` — Unit tests for the post-publication check against a local HTTP server.
 - `tests/unit/test_unisci.py` — Unit tests for joining stations and prices and grouping by province.
