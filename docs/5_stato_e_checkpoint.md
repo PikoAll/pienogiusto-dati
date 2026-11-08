@@ -1,6 +1,13 @@
 # Stato e Checkpoint (diario di bordo)
 Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 
+## [2026-11-08] PGD-7 Soglie dei cancelli sui dati reali (card #11, branch `feat/pgd-7-revisione-periodica-delle-sogl`)
+- Nuovo `pienogiusto_dati/soglie.py` (solo stdlib): `archivia` salva `index.json` e `p/*.json.gz` in `DIR/AAAA-MM-GG/` (giorno di `prezziDel`, cartella temporanea poi rename, idempotente, mai cancella); `calcola` scrive `soglie.json` (percentili 1/99 -10%/+10%, ristretti a 0,3-4,0, carburanti con almeno 100 prezzi; `impianti_min` = 80% della mediana giornaliera di `n`; niente file con meno di 7 giorni); `carica` ripiega sulle costanti (con motivo su stderr) se il file manca, e' illeggibile, ha `giorni` < 7 o e' piu' vecchio di 45 giorni.
+- `unisci` e `verifica_cancelli` accettano `soglie` opzionale (senza, esiti identici a prima): prezzo fuori soglie scartato e contato in `prezzo_fuori_range`; nuovo cancello `impianti_provincia` solo con soglie valide (provincia assente = 0). `pubblica.py` carica `config/soglie.json` (opzione `--soglie`).
+- Lo script di spinta (rimesso in `scripts/`, prima era `.backup`) lancia `archivia` a ogni giro: archivio in `PIENOGIUSTO_ARCHIVIO` (predefinito `~/.local/state/pienogiusto/archivio`), errori in `archivio.log` accanto all'archivio, codice di uscita e `spinta.log` invariati; con `--prova` non scrive nulla.
+- `config/soglie.json` non creato ne' versionato: senza file la produzione resta identica; il primo commit del file e' un passo successivo con almeno 7 giorni di archivio.
+- APERTO: i test della card #20 (`test_spinta_sh_is_set_aside`, `test_no_live_references_to_removed_scripts`) contraddicono questa card (la richiedono viva): vanno aggiornati dal test-writer. Il timer di spinta sul mini PC va reinstallato (Giuseppe).
+
 ## [2026-11-05] Verifica dei dati sull'URL pubblico dopo il deploy (card #6, branch `feat/6-pgd-verifica-pubblico`)
 - Nuovo `pienogiusto_dati/verifica_pubblico.py`: scarica l'`index.json` online e controlla HTTP 200, JSON valido, stesso `pubblicato` e stesso numero di province del build locale; 3 tentativi a 30 s.
 - `scripts/nodo-pi/pubblica.sh`: passo `verifica` dopo il push su `gh-pages`; se fallisce scrive `verifica-fallita: <motivo>`, manda il Telegram col motivo ed esce 1 (gh-pages intatto). D14 in `docs/DECISIONI.md`.
