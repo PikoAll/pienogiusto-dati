@@ -19,8 +19,10 @@ def _set_aside(rel, marker):
     assert marker in backup.read_text(encoding="utf-8")
 
 
-def test_spinta_sh_is_set_aside():
-    _set_aside("scripts/spinta.sh", "gh")
+def test_spinta_sh_is_active_again_for_archive_card_11():
+    """Card #11 brought scripts/spinta.sh back (it runs `archivia`); the old copy stays."""
+    assert (ROOT / "scripts/spinta.sh").is_file()
+    assert "gh" in (ROOT / "scripts/spinta.sh.backup").read_text(encoding="utf-8")
 
 
 def test_watchdog_sh_is_set_aside():
@@ -106,7 +108,8 @@ def test_no_live_references_to_removed_scripts():
             if any(part.startswith(".venv") or part == "venv" for part in rel.parts):
                 continue
             for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if "spinta.sh" in line or "watchdog.sh" in line:
+                # spinta.sh is live again since card #11; only watchdog.sh stays removed
+                if "watchdog.sh" in line:
                     live.append(f"{rel}:{n}")
     assert not live, f"live references left: {live}"
 
