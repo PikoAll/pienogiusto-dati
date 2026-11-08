@@ -7,6 +7,11 @@ Regola: aggiunge una voce IN TESTA solo l'agente che chiude il ticket.
 - 12 test unit + 4 di integrazione nuovi (fixture in `tests/fixtures/pubblico/`).
 - APERTO: misurare sulla Pi il ritardo di Pages; se supera ~60 s, alzare `--tentativi`/`--attesa`.
 
+## [2026-11-01] PGD-4 Roadmap: Epic 2 go-live chiuso (card #7, branch `feat/pgd-4-allineare-la-roadmap-epic-2-go`)
+- `docs/3_roadmap_macro.md`: Epic 2 riporta i 3 criteri di «chiuso» (7 giorni di pubblicazione dalla Pi, verifica URL #6 7 su 7, watchdog attivo).
+- `scripts/stato-epic2.sh [DIR]`: conta i criteri dai log (`residui/pubblica.log.*`, `verifica-url.log`, `watchdog.log`), una riga per criterio, exit 0 solo se tutti OK.
+- Test `tests/unit/test_stato_epic2.py` con log finti in `tests/fixtures/log-finti/` (verde/rosso): 9 verdi.
+
 ## [2026-10-31] Pulizia del vecchio flusso (card #20, branch `feat/20-pgd-pulizia-del-vecchio-flusso`)
 - Messi da parte con `git mv` in `.backup` (nulla cancellato): gli script di spinta e watchdog, `scripts/systemd/` (4 unita'), `tests/integration/test_spinta.py`, `test_watchdog.py`.
 - `scripts/nodo-pi/pubblica.sh`: il passo test torna a `pytest -q` senza `--ignore`; `test_nodo_pi.py` adattato; voci rimosse da `docs/mappa.md`.
