@@ -38,8 +38,22 @@ class Unione:
         return [min(lats), min(lons), max(lats), max(lons)]
 
 
-def unisci(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi) -> Unione:
+def _limiti(soglie: dict | None) -> dict[str, tuple[float, float]]:
+    """Per-fuel limits: the data-driven ones, never looser than the contract range."""
+    if not soglie:
+        return {}
+    return {c: (max(PREZZO_MIN, float(s["min"])), min(PREZZO_MAX, float(s["max"])))
+            for c, s in soglie.get("prezzi", {}).items()}
+
+
+def _nei_limiti(prezzo, limiti: dict[str, tuple[float, float]]) -> bool:
+    minimo, massimo = limiti.get(prezzo.c, (PREZZO_MIN, PREZZO_MAX))
+    return minimo <= prezzo.v <= massimo
+
+
+def unisci(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi, soglie: dict | None = None) -> Unione:
     u = Unione(anagrafica=len(anag.impianti))
+    limiti = _limiti(soglie)
     for id_, lista in prezzi.prezzi.items():
         if id_ not in anag.impianti:
             u.scarti["prezzi_senza_impianto"] += len(lista)
@@ -54,7 +68,7 @@ def unisci(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi) -> Unione:
         u.con_coordinate_valide += 1
         lista = prezzi.prezzi.get(id_, [])
         u.prezzi_totali += len(lista)
-        buoni = [p for p in lista if PREZZO_MIN <= p.v <= PREZZO_MAX]
+        buoni = [p for p in lista if _nei_limiti(p, limiti)]
         u.scarti["prezzo_fuori_range"] += len(lista) - len(buoni)
         if not buoni:
             u.scarti["senza_prezzi"] += 1
