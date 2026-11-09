@@ -18,7 +18,7 @@ from datetime import datetime, time as dtime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from . import cancelli
+from . import cancelli, soglie
 from .comuni import elenco_comuni
 from .parser import FormatoNonValido, parse_anagrafica, parse_prezzi
 from .scarica import (URL_ANAGRAFICA, URL_PREZZI, ErroreDownload, IndicePrecedente, indice_precedente,
@@ -27,6 +27,7 @@ from .unisci import unisci
 
 SCHEMA = 1
 ROMA = ZoneInfo("Europe/Rome")
+SOGLIE_PREDEFINITE = Path(__file__).resolve().parents[1] / "config" / "soglie.json"
 LEGGIMI = """PienoGiusto - dati carburanti per provincia
 
 Fonte: Ministero delle Imprese e del Made in Italy (MIMIT), dataset
@@ -36,6 +37,10 @@ Licenza: Italian Open Data License v2.0 (IODL 2.0), https://www.dati.gov.it/iodl
 I dati sono stati filtrati, uniti e riformattati; il MIMIT non e' responsabile di queste elaborazioni.
 Formato: docs/CONTRATTO.md nel repo pienogiusto-dati.
 """
+
+
+def carica_soglie(percorso: Path, adesso: datetime) -> dict | None:
+    return soglie.carica(percorso, adesso)
 
 
 def _leggi(sorgente: str) -> bytes:
@@ -56,13 +61,13 @@ def _prezzi_del(prezzi) -> str:
 
 
 def costruisci(dati_anagrafica: bytes, dati_prezzi: bytes, precedente: IndicePrecedente | None,
-               adesso: datetime):
+               adesso: datetime, *, soglie: dict | None = None):
     """Pure part of the pipeline: returns (files to write, report, is it new). Raises on failed gates."""
     anag = parse_anagrafica(dati_anagrafica)
     prezzi = parse_prezzi(dati_prezzi)
-    unione = unisci(anag, prezzi)
+    unione = unisci(anag, prezzi, soglie=soglie)
     comuni = elenco_comuni(unione)
-    esiti = cancelli.verifica_cancelli(anag, prezzi, unione, comuni, precedente and precedente.n)
+    esiti = cancelli.verifica_cancelli(anag, prezzi, unione, comuni, precedente and precedente.n, soglie=soglie)
     prezzi_del = _prezzi_del(prezzi)
     nuovo = cancelli.valuta_novita(prezzi_del, precedente and precedente.prezzi_del, adesso)
 
@@ -127,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--uscita", default="site", type=Path, help="output dir, must not exist")
     ap.add_argument("--indice-precedente", default=None, help="URL of the published index.json")
     ap.add_argument("--adesso", default=None, help="ISO timestamp for 'pubblicato' (tests)")
+    ap.add_argument("--soglie", default=SOGLIE_PREDEFINITE, type=Path, help="data-driven thresholds (optional)")
     a = ap.parse_args(argv)
 
     inizio = time.monotonic()
@@ -139,7 +145,8 @@ def main(argv: list[str] | None = None) -> int:
         dati_a = _leggi(a.anagrafica)
         dati_p = _leggi(a.prezzi)
         precedente = indice_precedente(a.indice_precedente)
-        file, report, nuovo = costruisci(dati_a, dati_p, precedente, adesso)
+        soglie = carica_soglie(a.soglie, adesso)
+        file, report, nuovo = costruisci(dati_a, dati_p, precedente, adesso, soglie=soglie)
     except FormatoNonValido as e:
         print(f"CANCELLO FALLITO intestazioni/formato: {e}", file=sys.stderr)
         return 1

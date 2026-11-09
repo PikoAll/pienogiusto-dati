@@ -55,7 +55,7 @@ def _quota(num: int, den: int) -> float:
 
 
 def verifica_cancelli(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi, unione: Unione,
-                      comuni: list[dict], n_precedente: int | None) -> list[Esito]:
+                      comuni: list[dict], n_precedente: int | None, soglie: dict | None = None) -> list[Esito]:
     esiti: list[Esito] = []
     n = unione.pubblicati
     if n_precedente:
@@ -69,6 +69,14 @@ def verifica_cancelli(anag: RisultatoAnagrafica, prezzi: RisultatoPrezzi, unione
     q = _quota(unione.scarti["prezzo_fuori_range"], unione.prezzi_totali)
     esiti.append(Esito("prezzi_fuori_range", q <= MAX_QUOTA_PREZZI_FUORI_RANGE, q,
                        f"<= {MAX_QUOTA_PREZZI_FUORI_RANGE}"))
+
+    if soglie:
+        minimi = soglie.get("impianti_min", {})
+        sotto = {s: (len(unione.province.get(s, [])), m) for s, m in minimi.items()
+                 if len(unione.province.get(s, [])) < m}
+        dettaglio = ", ".join(f"{s} {n}<{m}" for s, (n, m) in sorted(sotto.items()))
+        esiti.append(Esito("impianti_provincia", not sotto, len(sotto),
+                           "== 0 province sotto il minimo" + (f" ({dettaglio})" if sotto else "")))
 
     q = _quota(unione.con_coordinate_valide, unione.anagrafica)
     esiti.append(Esito("coordinate_valide", q >= MIN_QUOTA_COORDINATE_VALIDE, q,
