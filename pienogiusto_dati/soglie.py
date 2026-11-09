@@ -16,7 +16,7 @@ import json
 import os
 import statistics
 import sys
-import tempfile
+import zlib
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -56,8 +56,9 @@ def archivia(base_url: str, archivio: Path) -> int:
             print(f"archivio: giorno {giorno} gia' presente, niente da fare")
             return 0
         archivio.mkdir(parents=True, exist_ok=True)
-        temp = Path(tempfile.mkdtemp(prefix=".in-corso-", dir=archivio))
-        (temp / "p").mkdir()
+        # fixed name per day: a failed run is reused by the next one, leftovers don't pile up
+        temp = archivio / f".in-corso-{giorno}"
+        (temp / "p").mkdir(parents=True, exist_ok=True)
         (temp / "index.json").write_bytes(grezzo)
         for rel in file_province:
             dati = scarica(f"{base}/{rel}", tentativi=1 if base.startswith("file:") else 3)
@@ -107,7 +108,7 @@ def calcola(archivio: Path, uscita: Path, adesso: datetime | None = None) -> int
     for cartella in _giorni_in_finestra(archivio, oggi):
         try:
             n_province, prezzi_giorno = _leggi_giorno(cartella)
-        except (OSError, ValueError, KeyError, TypeError, EOFError) as e:
+        except (OSError, ValueError, KeyError, TypeError, EOFError, zlib.error) as e:
             _log(f"calcola: giorno {cartella.name} saltato, illeggibile: {e}")
             continue
         giorni += 1
