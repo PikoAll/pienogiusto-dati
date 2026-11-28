@@ -5,11 +5,6 @@
 - `.github/workflows/ci.yml` — CI workflow running the pytest suite on push and pull request with Python 3.12.
 - `.github/workflows/pubblica.yml` — Scheduled workflow that runs the pipeline and publishes per-province JSON to GitHub Pages when new prices exist.
 - `.gitignore` — Git ignore rules for generated site output directories.
-- `.pytest_cache/.gitignore` —
-- `.pytest_cache/CACHEDIR.TAG` —
-- `.pytest_cache/README.md` —
-- `.pytest_cache/v/cache/lastfailed` —
-- `.pytest_cache/v/cache/nodeids` —
 - `.rete-di-sicurezza.json` — file dati
 - `CLAUDE.md` — Project instructions for agents: data contract rules, fail-closed gates, standard-library-only runtime.
 - `LICENSE` — MIT license text for the repository.
@@ -28,13 +23,18 @@
 - `pienogiusto_dati/parser.py` — Tolerant parser for the two MIMIT CSV files handling separators, stray quotes and malformed rows.
 - `pienogiusto_dati/pubblica.py` — Pipeline entry point: downloads, parses, joins, applies gates and writes the site output files.
 - `pienogiusto_dati/scarica.py` — Robust downloader for the MIMIT files and the previously published index, with retries and validation.
-- `pienogiusto_dati/verifica_pubblico.py` — Post-publication check: downloads the public index.json and compares date and province count with the local one, with retries.
+- `pienogiusto_dati/soglie.py` —
 - `pienogiusto_dati/unisci.py` — Joins stations and prices by station id, filters invalid ones and groups results by province.
+- `pienogiusto_dati/verifica_pubblico.py` — Post-publication check: downloads the public index.json and compares date and province count with the local one, with retries.
 - `pyproject.toml` — Python project metadata: name, version, Python 3.12 requirement, no runtime dependencies, pytest as test extra.
 - `requirements-test.txt` — Pinned test dependency list containing pytest for CI.
+- `scripts/ci/esegui-test.sh` —
 - `scripts/nodo-pi/azienda-pienogiusto.service` —
 - `scripts/nodo-pi/azienda-pienogiusto.timer` —
 - `scripts/nodo-pi/pubblica.sh` —
+- `scripts/run-checks.sh` —
+- `scripts/spinta.sh` —
+- `scripts/stato-epic2.sh` —
 - `tests/conftest.py` — Shared pytest fixtures providing helpers to read fixture files as bytes.
 - `tests/contract/test_contratto.py` — Contract test validating the generated site against the schema 1 app data contract.
 - `tests/fixtures/README.md` — Explains the origin and purpose of each test fixture file derived from the real MIMIT extract.
@@ -43,18 +43,37 @@
 - `tests/fixtures/anagrafica_senza_estrazione.csv` — Fixture station registry without the leading Estrazione line.
 - `tests/fixtures/anagrafica_troncata.csv` — Fixture station registry truncated mid-row to test truncated download detection.
 - `tests/fixtures/anagrafica_virgola.csv` — Fixture station registry in the old comma-separated format.
+- `tests/fixtures/log-finti/rosso/residui/pubblica.log.20261101-091500-201` —
+- `tests/fixtures/log-finti/rosso/verifica-url.log` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261026-091500-101` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261027-091500-102` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261028-091500-103` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261029-091500-104` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261030-091500-105` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261031-091500-106` —
+- `tests/fixtures/log-finti/verde/residui/pubblica.log.20261101-091500-107` —
+- `tests/fixtures/log-finti/verde/verifica-url.log` —
+- `tests/fixtures/log-finti/verde/watchdog.log` —
 - `tests/fixtures/pagina_errore.html` — Fixture HTML error page served in place of a CSV to test rejection.
 - `tests/fixtures/prezzi_reale.csv` — Fixture with the real extract of MIMIT price rows for the fixture stations.
 - `tests/fixtures/prezzi_troncato.csv` — Fixture price file truncated mid-row to test truncated download detection.
 - `tests/fixtures/prezzi_virgola.csv` — Fixture price file in the old comma-separated format without the Estrazione line.
+- `tests/fixtures/pubblico/index_ok.json` — file dati
+- `tests/fixtures/pubblico/index_rotto.json` — file dati
+- `tests/fixtures/pubblico/index_vecchio.json` — file dati
 - `tests/integration/test_nodo_pi.py` —
 - `tests/integration/test_pipeline.py` — Integration tests running the whole pipeline on the real extract from bytes to site files on disk.
+- `tests/integration/test_spinta_archivio.py` —
 - `tests/regression/test_cancelli_regressione.py` — Regression tests giving each fail-closed gate a refusal case and a passing case.
 - `tests/regression/test_formati_regressione.py` — Regression tests for the MIMIT file formats seen or possible: old, new, truncated, HTML and cp1252.
 - `tests/smoke/test_avvio.py` — Smoke test checking the real pubblica entrypoint starts as a process.
 - `tests/unit/test_comuni.py` — Unit tests for the national municipality list builder.
+- `tests/unit/test_esegui_test_ci.py` —
 - `tests/unit/test_gitignore.py` —
 - `tests/unit/test_parser.py` — Unit tests for the tolerant MIMIT CSV parser on in-memory bytes.
+- `tests/unit/test_pulizia_vecchio_flusso.py` —
 - `tests/unit/test_scarica.py` — Unit tests for the robust downloader with the network replaced by fakes.
-- `tests/unit/test_verifica_pubblico.py` — Unit tests for the post-publication check against a local HTTP server.
+- `tests/unit/test_soglie.py` —
+- `tests/unit/test_stato_epic2.py` —
 - `tests/unit/test_unisci.py` — Unit tests for joining stations and prices and grouping by province.
+- `tests/unit/test_verifica_pubblico.py` — Unit tests for the post-publication check against a local HTTP server.
